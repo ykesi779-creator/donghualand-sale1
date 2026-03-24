@@ -1,0 +1,38 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "donghualand",
+  "compatibility_date": "2024-01-01",
+  "pages_build_output_dir": "./dist",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // D1 Database - donghualand-production
+  // To create: npx wrangler d1 create donghualand-production
+  // Then update database_id below with the returned ID
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "donghualand-production",
+      "database_id": "REPLACE_WITH_YOUR_DATABASE_ID"
+    }
+  ]
+
+  // ================================================
+  // REQUIRED SECRETS (set via Cloudflare Dashboard or wrangler CLI):
+  //
+  // ADMIN_USERNAME    : Your admin panel username (e.g. "admin")
+  // ADMIN_PASSWORD    : Your admin panel password (min 8 characters)
+  // JWT_SECRET        : Random strong secret for JWT tokens
+  //                     Generate: openssl rand -hex 32
+  //
+  // OPTIONAL SECRETS (for extra features):
+  // TMDB_API_KEY      : From themoviedb.org/settings/api (free, for auto-fill)
+  // CLOUDINARY_CLOUD_NAME  : Your Cloudinary cloud name (for image uploads)
+  // CLOUDINARY_API_KEY     : Your Cloudinary API key
+  // CLOUDINARY_API_SECRET  : Your Cloudinary API secret
+  //
+  // Set secrets with:
+  //   npx wrangler pages secret put ADMIN_USERNAME --project-name donghualand
+  //   npx wrangler pages secret put ADMIN_PASSWORD --project-name donghualand
+  //   npx wrangler pages secret put JWT_SECRET --project-name donghualand
+  // ================================================
+}
