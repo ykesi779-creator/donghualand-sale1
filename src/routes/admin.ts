@@ -7,9 +7,7 @@ type Bindings = {
   JWT_SECRET: string
   ADMIN_USERNAME: string
   ADMIN_PASSWORD: string
-  CLOUDINARY_CLOUD_NAME: string
-  CLOUDINARY_API_KEY: string
-  CLOUDINARY_API_SECRET: string
+  IMGBB_API_KEY: string
 }
 
 export const adminRoutes = new Hono<{ Bindings: Bindings }>()
@@ -437,28 +435,47 @@ adminRoutes.delete('/comments/:id', requireAdmin, async (c) => {
 })
 
 // ============ SETTINGS ============
+
+// Helper: ensure settings table exists
+async function ensureSettingsTable(db: D1Database) {
+  try {
+    await db.prepare(`CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL DEFAULT '',
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`).run()
+  } catch { /* table may already exist, ignore */ }
+}
+
 adminRoutes.get('/settings', requireAdmin, async (c) => {
   const db = c.env.DB
+  // Start with defaults
+  const result: Record<string, string> = {
+    site_name: 'DonghuaLand',
+    site_description: 'Watch Chinese Anime (Donghua) online for free in HD.',
+    contact_email: '',
+    registration_enabled: '1',
+    maintenance_mode: '0',
+  }
   try {
+    await ensureSettingsTable(db)
     const settings = await db.prepare('SELECT * FROM settings').all()
-    // Start with defaults
-    const result: Record<string, string> = {
-      site_name: 'DonghuaLand',
-      site_description: 'Watch Chinese Anime (Donghua) online for free in HD.',
-      contact_email: '',
-      registration_enabled: '1',
-      maintenance_mode: '0',
-    }
     // Override with actual DB values
-    settings.results.forEach((s: any) => { result[s.key] = s.value })
-    return c.json({ success: true, data: result })
-  } catch (e: any) { return c.json({ error: e.message }, 500) }
+    if (settings.results) {
+      settings.results.forEach((s: any) => { result[s.key] = s.value })
+    }
+  } catch { /* return defaults if DB error */ }
+  return c.json({ success: true, data: result })
 })
 
 adminRoutes.post('/settings', requireAdmin, async (c) => {
   const db = c.env.DB
   try {
+    await ensureSettingsTable(db)
     const body = await c.req.json()
+    if (!body || typeof body !== 'object') {
+      return c.json({ error: 'Invalid settings data' }, 400)
+    }
     for (const [key, value] of Object.entries(body)) {
       await db.prepare(
         'INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)'
@@ -515,15 +532,23 @@ adminRoutes.post('/change-password', requireAdmin, async (c) => {
   } catch (e: any) { return c.json({ error: e.message }, 500) }
 })
 
-// ============ CLOUDINARY STATUS ============
-adminRoutes.get('/cloudinary-status', requireAdmin, async (c) => {
-  const cloudName = c.env.CLOUDINARY_CLOUD_NAME
-  const apiKey = c.env.CLOUDINARY_API_KEY
-  const apiSecret = c.env.CLOUDINARY_API_SECRET
+// ============ IMGBB STATUS ============
+adminRoutes.get('/imgbb-status', requireAdmin, async (c) => {
+  const apiKey = c.env.IMGBB_API_KEY
 
   return c.json({
     success: true,
-    configured: !!(cloudName && apiKey && apiSecret),
-    cloud_name: cloudName || null,
+    configured: !!apiKey,
+  })
+})
+
+// ============ CLOUDINARY STATUS (legacy redirect - returns imgbb status) ============
+adminRoutes.get('/cloudinary-status', requireAdmin, async (c) => {
+  const apiKey = c.env.IMGBB_API_KEY
+
+  return c.json({
+    success: true,
+    configured: !!apiKey,
+    cloud_name: null,
   })
 })

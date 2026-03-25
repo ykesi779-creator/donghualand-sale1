@@ -280,7 +280,7 @@ export function profilePage(): string {
         if (headerAva) headerAva.src = data.url;
         window.showToast('Profile photo updated!', 'success');
       } else {
-        window.showToast(data.error || 'Upload failed. Make sure Cloudinary is configured.', 'error');
+        window.showToast(data.error || 'Upload failed. Make sure IMGBB_API_KEY is configured.', 'error');
       }
     } catch(e) {
       window.showToast('Upload failed: ' + e.message, 'error');
@@ -318,7 +318,7 @@ export function profilePage(): string {
         localStorage.setItem('user', JSON.stringify(user));
         window.showToast('Cover image updated!', 'success');
       } else {
-        window.showToast(data.error || 'Upload failed. Make sure Cloudinary is configured.', 'error');
+        window.showToast(data.error || 'Upload failed. Make sure IMGBB_API_KEY is configured.', 'error');
       }
     } catch(e) {
       window.showToast('Upload failed: ' + e.message, 'error');

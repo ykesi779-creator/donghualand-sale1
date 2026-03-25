@@ -425,14 +425,14 @@ window.previewImg = function(inputId, previewId) {
   }
 };
 
-// Upload image to Cloudinary via admin API endpoint
+// Upload image to IMGBB via admin API endpoint
 window.handleImgUpload = async function(input, inputId, previewId, isBanner = false) {
   const file = input.files[0];
   if (!file) return;
   if (!file.type.startsWith('image/')) { showToast('Only image files allowed', 'error'); return; }
-  if (file.size > 20 * 1024 * 1024) { showToast('File too large (max 20MB)', 'error'); return; }
+  if (file.size > 32 * 1024 * 1024) { showToast('File too large (max 32MB)', 'error'); return; }
 
-  showToast('Uploading to Cloudinary...', 'info');
+  showToast('Uploading image...', 'info');
   try {
     const formData = new FormData();
     formData.append('image', file);
@@ -449,10 +449,10 @@ window.handleImgUpload = async function(input, inputId, previewId, isBanner = fa
       setVal(inputId, data.url);
       const img = document.getElementById(previewId);
       if (img) { img.src = data.url; img.style.display = 'block'; }
-      showToast('Image uploaded to Cloudinary!', 'success');
+      showToast('Image uploaded successfully!', 'success');
     } else {
-      showToast(data.error || 'Upload failed. Check Cloudinary configuration.', 'error');
-      // Fallback: use base64 preview only
+      showToast(data.error || 'Upload failed. Check IMGBB_API_KEY configuration.', 'error');
+      // Fallback: use base64 preview only (local preview, URL not saved)
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = document.getElementById(previewId);
@@ -466,7 +466,7 @@ window.handleImgUpload = async function(input, inputId, previewId, isBanner = fa
   input.value = '';
 };
 
-// Upload episode thumbnail to Cloudinary
+// Upload episode thumbnail to IMGBB
 window.handleEpThumbUpload = async function(input) {
   const file = input.files[0];
   if (!file) return;
@@ -486,7 +486,7 @@ window.handleEpThumbUpload = async function(input) {
       previewImg('epThumb', 'epThumbPrev');
       showToast('Thumbnail uploaded!', 'success');
     } else {
-      showToast(data.error || 'Upload failed', 'error');
+      showToast(data.error || 'Upload failed. Check IMGBB_API_KEY configuration.', 'error');
     }
   } catch(e) { showToast('Error: ' + e.message, 'error'); }
   input.value = '';
@@ -745,21 +745,21 @@ window.removeSchedule = async function(id) {
 
 // ====== SETTINGS ======
 async function loadSettings() {
-  // Check Cloudinary status
+  // Check IMGBB status
   try {
-    const res = await fetch('/api/admin/cloudinary-status', { headers: headers() });
+    const res = await fetch('/api/admin/imgbb-status', { headers: headers() });
     const d = await res.json();
-    const statusEl = document.getElementById('cloudinaryStatus');
+    const statusEl = document.getElementById('imgbbStatus');
     if (statusEl) {
       if (d.configured) {
-        statusEl.innerHTML = '<span style="color:var(--green);"><i class="fas fa-check-circle"></i> Cloudinary configured (Cloud: ' + (d.cloud_name || '') + ')</span>';
+        statusEl.innerHTML = '<span style="color:var(--green);"><i class="fas fa-check-circle"></i> IMGBB configured and ready for image uploads.</span>';
       } else {
-        statusEl.innerHTML = '<span style="color:var(--red);"><i class="fas fa-times-circle"></i> Cloudinary NOT configured — add CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET as Cloudflare secrets.</span>';
+        statusEl.innerHTML = '<span style="color:var(--red);"><i class="fas fa-times-circle"></i> IMGBB NOT configured — add <code style="background:var(--bg4);padding:2px 6px;border-radius:4px;">IMGBB_API_KEY</code> as a Cloudflare secret. Get key at <a href="https://api.imgbb.com/" target="_blank" style="color:var(--purple2);">api.imgbb.com</a></span>';
       }
     }
   } catch(e) {
-    const statusEl = document.getElementById('cloudinaryStatus');
-    if (statusEl) statusEl.innerHTML = '<span style="color:var(--text3);">Unable to check status.</span>';
+    const statusEl = document.getElementById('imgbbStatus');
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--text3);">Unable to check IMGBB status.</span>';
   }
 
   // Load DB settings
@@ -774,7 +774,7 @@ async function loadSettings() {
       setCheck('setRegistration', s.registration_enabled !== '0');
       setCheck('setMaintenance', s.maintenance_mode === '1');
     }
-  } catch {}
+  } catch(e) { console.warn('Settings load error:', e); }
 }
 
 window.saveSettings = async function() {

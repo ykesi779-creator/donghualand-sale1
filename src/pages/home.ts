@@ -61,10 +61,20 @@ export function homePage(data: {
 </section>
 <script>
 (function(){
-  let cur = 0, total = ${heroItems.length}, timer;
+  // Guard: only init once
+  if (window.__heroSliderInit) return;
+  window.__heroSliderInit = true;
+
+  const slider = document.getElementById('heroSlider');
+  if (!slider) return;
+
+  let cur = 0;
+  const total = ${heroItems.length};
+  let timer;
+
   function go(n) {
-    const slides = document.querySelectorAll('.hero-slide');
-    const dots = document.querySelectorAll('.hero-dot');
+    const slides = slider.querySelectorAll('.hero-slide');
+    const dots = slider.querySelectorAll('.hero-dot');
     if (!slides.length) return;
     slides[cur].classList.remove('active');
     if (dots[cur]) dots[cur].classList.remove('active');
@@ -72,9 +82,15 @@ export function homePage(data: {
     slides[cur].classList.add('active');
     if (dots[cur]) dots[cur].classList.add('active');
   }
+
   window.heroSlide = (d) => { clearInterval(timer); go(cur + d); startTimer(); };
   window.heroGoTo = (n) => { clearInterval(timer); go(n); startTimer(); };
-  function startTimer() { timer = setInterval(() => go(cur + 1), 6000); }
+
+  function startTimer() {
+    clearInterval(timer);
+    if (total > 1) timer = setInterval(() => go(cur + 1), 6000);
+  }
+
   startTimer();
 })();
 </script>

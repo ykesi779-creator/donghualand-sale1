@@ -504,6 +504,9 @@ ul, ol { list-style: none; }
   position: relative; overflow: hidden; background: var(--bg);
   /* Fixed height so slides can use position:absolute without collapsing */
   height: 520px;
+  /* Prevent any layout that could cause double-display */
+  display: block;
+  contain: layout style;
 }
 /* All slides: stack absolutely so they NEVER take up block space */
 .hero-slide {
@@ -515,6 +518,11 @@ ul, ol { list-style: none; }
   pointer-events: none;
   transition: opacity 0.5s ease, visibility 0.5s ease;
   z-index: 1;
+  /* Never allow a non-active slide to show or affect layout */
+  display: block !important;
+  float: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 /* Only the active slide is visible */
 .hero-slide.active {
@@ -522,6 +530,10 @@ ul, ol { list-style: none; }
   visibility: visible !important;
   pointer-events: auto;
   z-index: 2;
+}
+/* Prevent the hero slider section itself from being duplicated */
+section.hero-slider + section.hero-slider {
+  display: none !important;
 }
 .hero-bg-img {
   width: 100%; height: 100%;
@@ -819,11 +831,11 @@ ul, ol { list-style: none; }
 }
 .detail-banner {
   width: 100%; height: 380px; object-fit: cover; object-position: top;
-  filter: blur(4px) brightness(0.3); transform: scale(1.1);
+  filter: none; transform: none;
 }
 .detail-banner-grad {
   position: absolute; inset: 0;
-  background: linear-gradient(0deg, var(--bg) 0%, rgba(10,10,15,0.55) 45%, rgba(10,10,15,0.2) 100%);
+  background: linear-gradient(0deg, var(--bg) 0%, rgba(10,10,15,0.65) 50%, rgba(10,10,15,0.35) 100%);
 }
 .detail-content {
   position: absolute; bottom: 0; left: 0; right: 0;

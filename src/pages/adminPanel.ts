@@ -822,13 +822,18 @@ export function adminPanelPage(section: string = 'dashboard') {
       </div>
 
       <div class="settings-card">
-        <div class="settings-title"><i class="fas fa-cloud-upload-alt" style="color:var(--purple2);margin-right:8px;"></i> Cloudinary Status</div>
-        <div id="cloudinaryStatus" style="font-size:13px;color:var(--text3);">Checking...</div>
+        <div class="settings-title"><i class="fas fa-image" style="color:var(--purple2);margin-right:8px;"></i> IMGBB Image Upload Status</div>
+        <div id="imgbbStatus" style="font-size:13px;color:var(--text3);">Checking...</div>
+        <div style="font-size:12px;color:var(--text4);margin-top:10px;">
+          IMGBB is used for all image uploads (anime covers, banners, episode thumbnails, profile pictures).
+          Get a free API key at <a href="https://api.imgbb.com/" target="_blank" style="color:var(--purple2);">api.imgbb.com →</a>
+          Then add <code style="background:var(--bg4);padding:2px 6px;border-radius:4px;font-size:11px;">IMGBB_API_KEY</code> as a Cloudflare secret.
+        </div>
       </div>
 
       <div class="settings-card">
         <div class="settings-title"><i class="fas fa-database" style="color:var(--purple2);margin-right:8px;"></i> API Keys Status</div>
-        <div style="font-size:13px;color:var(--text3);">API keys are configured as Cloudflare environment secrets and are never exposed here for security. Check Cloudflare dashboard for configuration.</div>
+        <div id="apiKeysStatus" style="font-size:13px;color:var(--text3);">API keys are configured as Cloudflare environment secrets and are never exposed here for security. Check Cloudflare dashboard for configuration.</div>
       </div>
     </div>
 
