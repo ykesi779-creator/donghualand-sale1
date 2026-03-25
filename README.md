@@ -58,7 +58,7 @@ All content is stored in a **Cloudflare D1 SQLite database** — no dummy data, 
 - 📅 **Schedule Management** — set weekly airing days
 - 💬 **Comment Moderation** — approve/reject/delete comments
 - ⚙️ **Site Settings** — site name, maintenance mode, registration toggle
-- ☁️ **Cloudinary** — optional image hosting integration
+- 🖼️ **IMGBB** — optional image hosting integration for uploads
 
 ---
 
@@ -76,7 +76,7 @@ donghualand/
 │   │   ├── comments.ts       # Comments API
 │   │   ├── search.ts         # Search API
 │   │   ├── tmdb.ts           # TMDB integration
-│   │   └── upload.ts         # Cloudinary image upload
+│   │   └── upload.ts         # IMGBB image upload
 │   ├── pages/
 │   │   ├── layout.ts         # Main HTML layout (header/footer)
 │   │   ├── home.ts           # Home page (hero, trending, etc.)
@@ -310,10 +310,9 @@ wrangler pages secret put JWT_SECRET --project-name donghualand
 # For TMDB anime data auto-fill (free at themoviedb.org)
 wrangler pages secret put TMDB_API_KEY --project-name donghualand
 
-# For Cloudinary image hosting (free at cloudinary.com)
-wrangler pages secret put CLOUDINARY_CLOUD_NAME --project-name donghualand
-wrangler pages secret put CLOUDINARY_API_KEY --project-name donghualand
-wrangler pages secret put CLOUDINARY_API_SECRET --project-name donghualand
+# For IMGBB image hosting (free at https://api.imgbb.com/)
+# Used for uploading anime covers, banners, episode thumbnails, and profile pictures
+wrangler pages secret put IMGBB_API_KEY --project-name donghualand
 ```
 
 ### Step 11: Bind D1 Database to Pages Project
@@ -355,9 +354,7 @@ Visit your site URL and test:
 | `ADMIN_PASSWORD` | ✅ Yes | Your admin login password | Choose a strong password |
 | `JWT_SECRET` | ✅ Yes | Secret for secure tokens | Generate: `openssl rand -hex 32` |
 | `TMDB_API_KEY` | Optional | For auto-filling anime data | [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api) |
-| `CLOUDINARY_CLOUD_NAME` | Optional | Cloud name for image uploads | [cloudinary.com/console](https://cloudinary.com/console) |
-| `CLOUDINARY_API_KEY` | Optional | Cloudinary API key | Cloudinary Dashboard |
-| `CLOUDINARY_API_SECRET` | Optional | Cloudinary API secret | Cloudinary Dashboard |
+| `IMGBB_API_KEY` | Optional | API key for image uploads (covers, banners, thumbnails, profiles) | [api.imgbb.com](https://api.imgbb.com/) |
 
 ### How to Set Secrets
 
@@ -626,7 +623,7 @@ Framework:   Hono v4 + TypeScript
 - ✅ Full CRUD for anime, episodes, schedule, comments, users
 - ✅ Hero slider, trending, popular sections from real database
 - ✅ TMDB auto-fill integration
-- ✅ Cloudinary image upload support
+- ✅ IMGBB image upload support
 - ✅ Mobile-responsive design with bottom navigation
 - ✅ User registration, login, watchlist, history
 - ✅ Bug fixes: editAnime API format, title_english, studios fields, episode edit with air_date

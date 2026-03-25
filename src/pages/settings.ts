@@ -31,7 +31,7 @@ export function settingsPage(): string {
                 <i class="fas fa-camera"></i> Change Photo
               </button>
               <input type="file" id="profileImgFile" accept="image/*" style="display:none" onchange="uploadProfilePhoto(this)">
-              <p style="font-size:12px; color:var(--text3); margin:0;">PNG, JPG up to 5MB. Hosted on Cloudinary.</p>
+              <p style="font-size:12px; color:var(--text3); margin:0;">PNG, JPG up to 5MB. Hosted on IMGBB.</p>
             </div>
           </div>
         </div>

@@ -35,9 +35,7 @@ type Bindings = {
   JWT_SECRET: string
   ADMIN_USERNAME: string
   ADMIN_PASSWORD: string
-  CLOUDINARY_CLOUD_NAME: string
-  CLOUDINARY_API_KEY: string
-  CLOUDINARY_API_SECRET: string
+  IMGBB_API_KEY: string
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
