@@ -272,31 +272,9 @@ function initScheduleTabs() {
 }
 
 // ============ HERO SLIDER ============
-function initHeroSlider() {
-  const slides = document.querySelectorAll('.hero-slide');
-  const dots = document.querySelectorAll('.hero-dot');
-  if (slides.length <= 1) return;
-  let current = 0;
-  let timer;
-  function goTo(i) {
-    slides[current].classList.remove('active');
-    dots[current]?.classList.remove('active');
-    current = (i + slides.length) % slides.length;
-    slides[current].classList.add('active');
-    dots[current]?.classList.add('active');
-  }
-  function next() { goTo(current + 1); }
-  function start() { timer = setInterval(next, 5000); }
-  function stop() { clearInterval(timer); }
-  dots.forEach((dot, i) => {
-    dot.addEventListener('click', () => { stop(); goTo(i); start(); });
-  });
-  const prevBtn = document.getElementById('heroPrev');
-  const nextBtn = document.getElementById('heroNext');
-  if (prevBtn) prevBtn.addEventListener('click', () => { stop(); goTo(current - 1); start(); });
-  if (nextBtn) nextBtn.addEventListener('click', () => { stop(); goTo(current + 1); start(); });
-  start();
-}
+// The hero slider is fully controlled by the inline script in home.ts (window.heroSlide / window.heroGoTo).
+// This stub is kept so nothing breaks if called from old references.
+function initHeroSlider() { /* no-op: slider managed by inline script in home.ts */ }
 
 // ============ WATCHLIST (localStorage) ============
 window.getWatchlist = function() {

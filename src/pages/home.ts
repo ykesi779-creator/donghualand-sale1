@@ -53,45 +53,68 @@ export function homePage(data: {
   </div>`).join('')}
 
   ${heroItems.length > 1 ? `
-  <button class="hero-arrow prev" onclick="heroSlide(-1)"><i class="fas fa-chevron-left"></i></button>
-  <button class="hero-arrow next" onclick="heroSlide(1)"><i class="fas fa-chevron-right"></i></button>
-  <div class="hero-dots">
-    ${heroItems.map((_, i) => `<div class="hero-dot${i === 0 ? ' active' : ''}" onclick="heroGoTo(${i})"></div>`).join('')}
+  <button class="hero-arrow prev" id="heroPrevBtn" aria-label="Previous"><i class="fas fa-chevron-left"></i></button>
+  <button class="hero-arrow next" id="heroNextBtn" aria-label="Next"><i class="fas fa-chevron-right"></i></button>
+  <div class="hero-dots" id="heroDots">
+    ${heroItems.map((_, i) => `<div class="hero-dot${i === 0 ? ' active' : ''}" data-idx="${i}"></div>`).join('')}
   </div>` : ''}
 </section>
 <script>
 (function(){
-  // Guard: only init once
+  // Guard: only one instance ever runs
   if (window.__heroSliderInit) return;
   window.__heroSliderInit = true;
 
-  const slider = document.getElementById('heroSlider');
+  var slider = document.getElementById('heroSlider');
   if (!slider) return;
 
-  let cur = 0;
-  const total = ${heroItems.length};
-  let timer;
+  var slides = slider.querySelectorAll('.hero-slide');
+  var dots   = slider.querySelectorAll('.hero-dot');
+  var total  = slides.length;
+  if (total === 0) return;
+
+  var cur = 0;
+  var timer = null;
 
   function go(n) {
-    const slides = slider.querySelectorAll('.hero-slide');
-    const dots = slider.querySelectorAll('.hero-dot');
-    if (!slides.length) return;
+    // Remove active from current
     slides[cur].classList.remove('active');
     if (dots[cur]) dots[cur].classList.remove('active');
-    cur = (n + total) % total;
+    // Clamp next index
+    cur = ((n % total) + total) % total;
+    // Activate next
     slides[cur].classList.add('active');
     if (dots[cur]) dots[cur].classList.add('active');
   }
 
-  window.heroSlide = (d) => { clearInterval(timer); go(cur + d); startTimer(); };
-  window.heroGoTo = (n) => { clearInterval(timer); go(n); startTimer(); };
-
-  function startTimer() {
+  function resetTimer() {
     clearInterval(timer);
-    if (total > 1) timer = setInterval(() => go(cur + 1), 6000);
+    if (total > 1) timer = setInterval(function(){ go(cur + 1); }, 6000);
   }
 
-  startTimer();
+  // Expose for onclick attributes (arrows use these via button element listeners below)
+  window.heroSlide = function(d) { go(cur + d); resetTimer(); };
+  window.heroGoTo  = function(n) { go(n);       resetTimer(); };
+
+  // Wire up arrow buttons (event listeners, not onclick attributes)
+  var prevBtn = document.getElementById('heroPrevBtn');
+  var nextBtn = document.getElementById('heroNextBtn');
+  if (prevBtn) prevBtn.addEventListener('click', function(){ go(cur - 1); resetTimer(); });
+  if (nextBtn) nextBtn.addEventListener('click', function(){ go(cur + 1); resetTimer(); });
+
+  // Wire up dots via event delegation
+  var dotsWrap = document.getElementById('heroDots');
+  if (dotsWrap) {
+    dotsWrap.addEventListener('click', function(e) {
+      var dot = e.target.closest('.hero-dot');
+      if (!dot) return;
+      var idx = parseInt(dot.getAttribute('data-idx'), 10);
+      if (!isNaN(idx)) { go(idx); resetTimer(); }
+    });
+  }
+
+  // Start auto-play
+  resetTimer();
 })();
 </script>
 ` : `
