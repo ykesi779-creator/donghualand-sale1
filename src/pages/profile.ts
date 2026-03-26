@@ -14,18 +14,10 @@ export function profilePage(): string {
   </div>
 
   <div id="profileMain" class="hidden">
-    <!-- Cover Image Section -->
+    <!-- Profile Header -->
     <div class="profile-hero" id="profileHero">
-      <div class="profile-banner" id="profileBanner" style="position:relative; cursor:pointer;" onclick="triggerCoverUpload()" title="Click to change cover image">
-        <div class="profile-banner-overlay">
-          <i class="fas fa-camera"></i>
-          <span>Change Cover</span>
-        </div>
-      </div>
-      <input type="file" id="coverImageInput" accept="image/*" style="display:none" onchange="uploadCoverImage(this)">
-
-      <div class="profile-meta-row">
-        <!-- Profile Image -->
+      <div class="profile-meta-row" style="padding:20px 16px 16px;">
+        <!-- Profile Picture -->
         <div class="profile-ava-wrap" style="position:relative; cursor:pointer;" onclick="triggerProfileUpload()" title="Click to change profile photo">
           <img id="profileAva" src="" alt="Avatar" class="profile-ava">
           <div class="profile-ava-overlay">
@@ -47,7 +39,7 @@ export function profilePage(): string {
     </div>
 
     <!-- Upload progress -->
-    <div id="uploadProgress" style="display:none; background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:12px 16px; margin-bottom:12px; display:none; align-items:center; gap:10px;">
+    <div id="uploadProgress" style="display:none; background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:12px 16px; margin-bottom:12px; align-items:center; gap:10px;">
       <i class="fas fa-spinner fa-spin" style="color:var(--purple2);"></i>
       <span id="uploadProgressText" style="font-size:13px; color:var(--text2);">Uploading image...</span>
     </div>
@@ -118,12 +110,6 @@ export function profilePage(): string {
   opacity:0; transition:opacity 0.2s; color:#fff; font-size:18px; flex-direction:column; gap:2px;
 }
 .profile-ava-wrap:hover .profile-ava-overlay { opacity:1; }
-.profile-banner-overlay {
-  position:absolute; inset:0; background:rgba(0,0,0,0.3);
-  display:flex; align-items:center; justify-content:center;
-  gap:8px; color:#fff; font-size:13px; font-weight:600; opacity:0; transition:opacity 0.2s;
-}
-.profile-banner:hover .profile-banner-overlay { opacity:1; }
 #uploadProgress { display:flex; }
 </style>
 
@@ -144,14 +130,6 @@ export function profilePage(): string {
     const ava = u.profile_image || u.avatar || 
       ('https://ui-avatars.com/api/?name=' + encodeURIComponent(u.username) + '&background=6c5ce7&color=fff&size=80&bold=true');
     document.getElementById('profileAva').src = ava;
-    
-    // Cover image
-    const banner = document.getElementById('profileBanner');
-    if (u.cover_image) {
-      banner.style.backgroundImage = 'url(' + u.cover_image + ')';
-      banner.style.backgroundSize = 'cover';
-      banner.style.backgroundPosition = 'center';
-    }
 
     document.getElementById('profileUsername').textContent = u.username || 'User';
     document.getElementById('profileRole').textContent = u.role === 'admin' ? '🛡 Admin' : 'Member';
@@ -247,9 +225,6 @@ export function profilePage(): string {
   window.triggerProfileUpload = function() {
     document.getElementById('profileImageInput').click();
   };
-  window.triggerCoverUpload = function() {
-    document.getElementById('coverImageInput').click();
-  };
 
   window.uploadProfileImage = async function(input) {
     const file = input.files[0];
@@ -290,43 +265,6 @@ export function profilePage(): string {
     }
   };
 
-  window.uploadCoverImage = async function(input) {
-    const file = input.files[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) { window.showToast('Only image files allowed', 'error'); return; }
-    if (file.size > 10 * 1024 * 1024) { window.showToast('Image must be under 10MB', 'error'); return; }
-    
-    showUploadProgress('Uploading cover image...');
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-      
-      const res = await fetch('/api/upload/cover-image', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token },
-        body: formData
-      });
-      const data = await res.json();
-      
-      if (data.success && data.url) {
-        const banner = document.getElementById('profileBanner');
-        banner.style.backgroundImage = 'url(' + data.url + ')';
-        banner.style.backgroundSize = 'cover';
-        banner.style.backgroundPosition = 'center';
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        user.cover_image = data.url;
-        localStorage.setItem('user', JSON.stringify(user));
-        window.showToast('Cover image updated!', 'success');
-      } else {
-        window.showToast(data.error || 'Upload failed. Make sure IMGBB_API_KEY is configured.', 'error');
-      }
-    } catch(e) {
-      window.showToast('Upload failed: ' + e.message, 'error');
-    } finally {
-      hideUploadProgress();
-      input.value = '';
-    }
-  };
 })();
 </script>
 `

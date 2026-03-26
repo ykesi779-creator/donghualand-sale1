@@ -36,20 +36,6 @@ export function settingsPage(): string {
           </div>
         </div>
         <div class="form-group">
-          <label>Cover / Banner Image</label>
-          <div id="coverPreviewWrap" style="width:100%; height:80px; background:var(--bg4); border-radius:8px; border:1px solid var(--border); overflow:hidden; margin-bottom:8px; position:relative;">
-            <img id="setCoverPreview" src="" style="width:100%; height:100%; object-fit:cover; display:none;" alt="Cover">
-            <div id="coverPlaceholder" style="display:flex; align-items:center; justify-content:center; height:100%; color:var(--text4); font-size:12px; gap:6px;">
-              <i class="fas fa-panorama"></i> No cover image
-            </div>
-          </div>
-          <button class="btn-outline-sm" onclick="document.getElementById('coverImgFile').click()">
-            <i class="fas fa-image"></i> Change Cover
-          </button>
-          <input type="file" id="coverImgFile" accept="image/*" style="display:none" onchange="uploadCoverPhoto(this)">
-          <small style="color:var(--text3); display:block; margin-top:6px;">Wide image recommended (16:9). Up to 10MB.</small>
-        </div>
-        <div class="form-group">
           <label>Username</label>
           <input type="text" id="setUsername" class="form-inp" placeholder="Username">
           <small>3-30 characters. Letters, numbers, dots, underscores, hyphens only.</small>
@@ -177,14 +163,6 @@ export function settingsPage(): string {
     const avaEl = document.getElementById('setAvaPreview');
     if (avaEl) avaEl.src = u.profile_image || u.avatar ||
       ('https://ui-avatars.com/api/?name=' + encodeURIComponent(u.username) + '&background=6c5ce7&color=fff&size=60&bold=true');
-    
-    const coverImg = document.getElementById('setCoverPreview');
-    const coverPh = document.getElementById('coverPlaceholder');
-    if (u.cover_image) {
-      coverImg.src = u.cover_image;
-      coverImg.style.display = 'block';
-      coverPh.style.display = 'none';
-    }
   }
 
   loadUserData(user);
@@ -228,37 +206,6 @@ export function settingsPage(): string {
         localStorage.setItem('user', JSON.stringify(user));
         const ha = document.getElementById('userAva'); if (ha) ha.src = data.url;
         window.showToast('Profile photo updated!', 'success');
-      } else {
-        window.showToast(data.error || 'Upload failed', 'error');
-      }
-    } catch(e) { window.showToast('Upload error: ' + e.message, 'error'); }
-    input.value = '';
-  };
-
-  // ==================== COVER PHOTO UPLOAD ====================
-  window.uploadCoverPhoto = async function(input) {
-    const file = input.files[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) { window.showToast('Only image files allowed', 'error'); return; }
-    if (file.size > 10 * 1024 * 1024) { window.showToast('Image must be under 10MB', 'error'); return; }
-    
-    window.showToast('Uploading cover image...', 'info');
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-      const res = await fetch('/api/upload/cover-image', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token },
-        body: formData
-      });
-      const data = await res.json();
-      if (data.success && data.url) {
-        const coverImg = document.getElementById('setCoverPreview');
-        const coverPh = document.getElementById('coverPlaceholder');
-        coverImg.src = data.url; coverImg.style.display = 'block'; coverPh.style.display = 'none';
-        user.cover_image = data.url;
-        localStorage.setItem('user', JSON.stringify(user));
-        window.showToast('Cover image updated!', 'success');
       } else {
         window.showToast(data.error || 'Upload failed', 'error');
       }
