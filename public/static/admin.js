@@ -768,20 +768,33 @@ async function loadSettings() {
     const d = await res.json();
     if (d.data) {
       const s = d.data;
-      setVal('setSiteName', s.site_name || 'DonghuaLand');
-      setVal('setSiteDesc', s.site_description || '');
-      setVal('setContactEmail', s.contact_email || '');
+      // General
       setCheck('setRegistration', s.registration_enabled !== '0');
       setCheck('setMaintenance', s.maintenance_mode === '1');
+      // Emails
+      setVal('setContactEmail', s.contact_email || '');
+      setVal('setDmcaEmail', s.dmca_email || '');
+      setVal('setPrivacyEmail', s.privacy_email || '');
+      setVal('setAboutEmail', s.about_email || '');
+      // Social links
+      setVal('setSocialDiscord', s.social_discord || '');
+      setVal('setSocialTwitter', s.social_twitter || '');
+      setVal('setSocialReddit', s.social_reddit || '');
+      setVal('setSocialTelegram', s.social_telegram || '');
+      setVal('setSocialFacebook', s.social_facebook || '');
+      setVal('setSocialYoutube', s.social_youtube || '');
+      setVal('setSocialInstagram', s.social_instagram || '');
+      setVal('setSocialTiktok', s.social_tiktok || '');
     }
   } catch(e) { console.warn('Settings load error:', e); }
+
+  // Load broadcasts
+  loadBroadcasts();
 }
 
-window.saveSettings = async function() {
+// Save general settings (registration, maintenance)
+window.saveGeneralSettings = async function() {
   const body = {
-    site_name: getVal('setSiteName'),
-    site_description: getVal('setSiteDesc'),
-    contact_email: getVal('setContactEmail'),
     registration_enabled: getCheck('setRegistration') ? '1' : '0',
     maintenance_mode: getCheck('setMaintenance') ? '1' : '0',
   };
@@ -791,8 +804,129 @@ window.saveSettings = async function() {
       body: JSON.stringify(body)
     });
     const d = await res.json();
-    showToast(d.success ? 'Settings saved!' : (d.error || 'Error'), d.success ? 'success' : 'error');
+    showToast(d.success ? 'General settings saved!' : (d.error || 'Error'), d.success ? 'success' : 'error');
   } catch { showToast('Error saving settings', 'error'); }
+};
+
+// Save email settings
+window.saveEmailSettings = async function() {
+  const body = {
+    contact_email: getVal('setContactEmail'),
+    dmca_email: getVal('setDmcaEmail'),
+    privacy_email: getVal('setPrivacyEmail'),
+    about_email: getVal('setAboutEmail'),
+  };
+  try {
+    const res = await fetch('/api/admin/settings', {
+      method: 'POST', headers: headers(),
+      body: JSON.stringify(body)
+    });
+    const d = await res.json();
+    showToast(d.success ? 'Email settings saved!' : (d.error || 'Error'), d.success ? 'success' : 'error');
+  } catch { showToast('Error saving email settings', 'error'); }
+};
+
+// Save social media settings
+window.saveSocialSettings = async function() {
+  const body = {
+    social_discord: getVal('setSocialDiscord'),
+    social_twitter: getVal('setSocialTwitter'),
+    social_reddit: getVal('setSocialReddit'),
+    social_telegram: getVal('setSocialTelegram'),
+    social_facebook: getVal('setSocialFacebook'),
+    social_youtube: getVal('setSocialYoutube'),
+    social_instagram: getVal('setSocialInstagram'),
+    social_tiktok: getVal('setSocialTiktok'),
+  };
+  try {
+    const res = await fetch('/api/admin/settings', {
+      method: 'POST', headers: headers(),
+      body: JSON.stringify(body)
+    });
+    const d = await res.json();
+    showToast(d.success ? 'Social links saved! Changes appear in site footer.' : (d.error || 'Error'), d.success ? 'success' : 'error');
+  } catch { showToast('Error saving social links', 'error'); }
+};
+
+// ====== BROADCASTS ======
+async function loadBroadcasts() {
+  const container = document.getElementById('broadcastList');
+  if (!container) return;
+  container.innerHTML = '<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+  try {
+    const res = await fetch('/api/admin/broadcasts', { headers: headers() });
+    const d = await res.json();
+    if (d.data && d.data.length > 0) {
+      const typeColors = {
+        info: { bg: 'rgba(52,152,219,0.1)', color: 'var(--blue)', border: 'rgba(52,152,219,0.3)', icon: 'fa-info-circle' },
+        success: { bg: 'rgba(0,208,132,0.1)', color: 'var(--green)', border: 'rgba(0,208,132,0.3)', icon: 'fa-check-circle' },
+        warning: { bg: 'rgba(241,196,15,0.1)', color: 'var(--gold)', border: 'rgba(241,196,15,0.3)', icon: 'fa-exclamation-triangle' },
+        error: { bg: 'rgba(232,64,64,0.1)', color: 'var(--red)', border: 'rgba(232,64,64,0.3)', icon: 'fa-times-circle' },
+      };
+      container.innerHTML = d.data.map(b => {
+        const tc = typeColors[b.type] || typeColors.info;
+        return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:${tc.bg};border:1px solid ${tc.border};border-radius:var(--r8);margin-bottom:8px;">
+          <i class="fas ${tc.icon}" style="color:${tc.color};margin-top:2px;flex-shrink:0;"></i>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;color:var(--text1);word-break:break-word;">${escHtml(b.message)}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px;">${b.type.toUpperCase()} &bull; ${b.is_active ? '<span style="color:var(--green);">Active</span>' : '<span style="color:var(--text4);">Inactive</span>'} &bull; ${b.created_at ? new Date(b.created_at).toLocaleString() : ''}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;">
+            <button class="tbl-btn tbl-edit" onclick="toggleBroadcast(${b.id}, ${b.is_active ? 0 : 1})" title="${b.is_active ? 'Deactivate' : 'Activate'}">${b.is_active ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>'}</button>
+            <button class="tbl-btn tbl-del" onclick="deleteBroadcast(${b.id})" title="Delete"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>`;
+      }).join('');
+    } else {
+      container.innerHTML = '<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px;border:1px dashed var(--border);border-radius:var(--r8);">No broadcasts yet. Create one above to notify all visitors.</div>';
+    }
+  } catch(e) {
+    container.innerHTML = '<div style="color:var(--red);font-size:13px;padding:12px;">Error loading broadcasts: ' + e.message + '</div>';
+  }
+}
+
+window.sendBroadcast = async function() {
+  const msg = getVal('broadcastMsg');
+  const type = getVal('broadcastType') || 'info';
+  if (!msg || !msg.trim()) { showToast('Please enter a broadcast message', 'error'); return; }
+  try {
+    const res = await fetch('/api/admin/broadcasts', {
+      method: 'POST', headers: headers(),
+      body: JSON.stringify({ message: msg.trim(), type })
+    });
+    const d = await res.json();
+    if (d.success) {
+      showToast('Broadcast sent! Visitors will see it immediately.', 'success');
+      setVal('broadcastMsg', '');
+      loadBroadcasts();
+    } else {
+      showToast(d.error || 'Failed to send broadcast', 'error');
+    }
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+};
+
+window.toggleBroadcast = async function(id, newState) {
+  try {
+    const res = await fetch('/api/admin/broadcasts/' + id, {
+      method: 'PATCH', headers: headers(),
+      body: JSON.stringify({ is_active: newState })
+    });
+    const d = await res.json();
+    if (d.success) {
+      showToast(newState ? 'Broadcast activated' : 'Broadcast deactivated', 'success');
+      loadBroadcasts();
+    } else { showToast(d.error || 'Error', 'error'); }
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+};
+
+window.deleteBroadcast = async function(id) {
+  if (!confirm('Delete this broadcast?')) return;
+  try {
+    const res = await fetch('/api/admin/broadcasts/' + id, { method: 'DELETE', headers: headers() });
+    const d = await res.json();
+    if (d.success) { showToast('Broadcast deleted', 'success'); loadBroadcasts(); }
+    else showToast(d.error || 'Error', 'error');
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
 };
 
 window.changePassword = async function() {

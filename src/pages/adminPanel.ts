@@ -797,18 +797,96 @@ export function adminPanelPage(section: string = 'dashboard') {
     <div class="admin-page" id="admin-settings">
       <div class="admin-page-hd"><div class="admin-page-title">Settings</div></div>
 
+      <!-- General Settings -->
       <div class="settings-card">
-        <div class="settings-title"><i class="fas fa-globe" style="color:var(--purple2);margin-right:8px;"></i> Site Settings</div>
-        <div class="admin-fg"><label class="admin-lbl">Site Name</label><input type="text" class="admin-inp" id="setSiteName" placeholder="DonghuaLand"></div>
-        <div class="admin-fg"><label class="admin-lbl">Site Description</label><input type="text" class="admin-inp" id="setSiteDesc" placeholder="Watch Chinese Anime online"></div>
-        <div class="admin-fg"><label class="admin-lbl">Contact Email</label><input type="email" class="admin-inp" id="setContactEmail" placeholder="admin@donghualand.vip"></div>
+        <div class="settings-title"><i class="fas fa-globe" style="color:var(--purple2);margin-right:8px;"></i> General Settings</div>
         <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;">
           <label class="admin-check"><input type="checkbox" id="setRegistration"> Allow User Registration</label>
           <label class="admin-check"><input type="checkbox" id="setMaintenance"> Maintenance Mode</label>
         </div>
-        <button class="admin-btn admin-btn-purple" onclick="saveSettings()"><i class="fas fa-save"></i> Save Settings</button>
+        <button class="admin-btn admin-btn-purple" onclick="saveGeneralSettings()"><i class="fas fa-save"></i> Save General Settings</button>
       </div>
 
+      <!-- Email Settings -->
+      <div class="settings-card">
+        <div class="settings-title"><i class="fas fa-envelope" style="color:var(--purple2);margin-right:8px;"></i> Email Addresses</div>
+        <p style="font-size:12px;color:var(--text3);margin-bottom:16px;">These emails appear on the Contact, DMCA, Privacy, and About pages. All fields load from the database.</p>
+        <div class="admin-form-grid">
+          <div class="admin-fg"><label class="admin-lbl">Contact Email</label><input type="email" class="admin-inp" id="setContactEmail" placeholder="contact@yourdomain.com"></div>
+          <div class="admin-fg"><label class="admin-lbl">DMCA Email</label><input type="email" class="admin-inp" id="setDmcaEmail" placeholder="dmca@yourdomain.com"></div>
+          <div class="admin-fg"><label class="admin-lbl">Privacy Email</label><input type="email" class="admin-inp" id="setPrivacyEmail" placeholder="privacy@yourdomain.com"></div>
+          <div class="admin-fg"><label class="admin-lbl">About/General Email</label><input type="email" class="admin-inp" id="setAboutEmail" placeholder="hello@yourdomain.com"></div>
+        </div>
+        <button class="admin-btn admin-btn-purple" onclick="saveEmailSettings()"><i class="fas fa-save"></i> Save Email Settings</button>
+      </div>
+
+      <!-- Social Media Links -->
+      <div class="settings-card">
+        <div class="settings-title"><i class="fas fa-share-alt" style="color:var(--purple2);margin-right:8px;"></i> Social Media Links</div>
+        <p style="font-size:12px;color:var(--text3);margin-bottom:16px;">Social links appear in the website footer. Enter full URLs (e.g. https://discord.gg/invite) or just the handle (e.g. yourusername).</p>
+        <div class="admin-form-grid">
+          <div class="admin-fg">
+            <label class="admin-lbl"><i class="fab fa-discord" style="color:#5865F2;margin-right:5px;"></i> Discord</label>
+            <input type="text" class="admin-inp" id="setSocialDiscord" placeholder="https://discord.gg/yourserver or invite code">
+          </div>
+          <div class="admin-fg">
+            <label class="admin-lbl"><i class="fab fa-twitter" style="color:#1DA1F2;margin-right:5px;"></i> Twitter / X</label>
+            <input type="text" class="admin-inp" id="setSocialTwitter" placeholder="https://twitter.com/yourhandle or @handle">
+          </div>
+          <div class="admin-fg">
+            <label class="admin-lbl"><i class="fab fa-reddit" style="color:#FF4500;margin-right:5px;"></i> Reddit</label>
+            <input type="text" class="admin-inp" id="setSocialReddit" placeholder="https://reddit.com/r/yoursubreddit or r/name">
+          </div>
+          <div class="admin-fg">
+            <label class="admin-lbl"><i class="fab fa-telegram" style="color:#229ED9;margin-right:5px;"></i> Telegram</label>
+            <input type="text" class="admin-inp" id="setSocialTelegram" placeholder="https://t.me/yourchannel or @channel">
+          </div>
+          <div class="admin-fg">
+            <label class="admin-lbl"><i class="fab fa-facebook" style="color:#1877F2;margin-right:5px;"></i> Facebook</label>
+            <input type="text" class="admin-inp" id="setSocialFacebook" placeholder="https://facebook.com/yourpage">
+          </div>
+          <div class="admin-fg">
+            <label class="admin-lbl"><i class="fab fa-youtube" style="color:#FF0000;margin-right:5px;"></i> YouTube</label>
+            <input type="text" class="admin-inp" id="setSocialYoutube" placeholder="https://youtube.com/c/yourchannel">
+          </div>
+          <div class="admin-fg">
+            <label class="admin-lbl"><i class="fab fa-instagram" style="color:#E1306C;margin-right:5px;"></i> Instagram</label>
+            <input type="text" class="admin-inp" id="setSocialInstagram" placeholder="https://instagram.com/yourhandle">
+          </div>
+          <div class="admin-fg">
+            <label class="admin-lbl"><i class="fab fa-tiktok" style="color:var(--text2);margin-right:5px;"></i> TikTok</label>
+            <input type="text" class="admin-inp" id="setSocialTiktok" placeholder="https://tiktok.com/@yourhandle">
+          </div>
+        </div>
+        <button class="admin-btn admin-btn-purple" onclick="saveSocialSettings()"><i class="fas fa-save"></i> Save Social Links</button>
+      </div>
+
+      <!-- System Broadcasts -->
+      <div class="settings-card">
+        <div class="settings-title"><i class="fas fa-bullhorn" style="color:var(--purple2);margin-right:8px;"></i> System Broadcasts</div>
+        <p style="font-size:12px;color:var(--text3);margin-bottom:16px;">Broadcasts are shown as a banner to all site visitors. Active broadcasts display at the top of every page.</p>
+        <div class="admin-fg">
+          <label class="admin-lbl">Broadcast Message</label>
+          <textarea class="admin-ta" id="broadcastMsg" rows="3" placeholder="Enter announcement message for all visitors..."></textarea>
+        </div>
+        <div class="admin-fg">
+          <label class="admin-lbl">Message Type</label>
+          <select class="admin-sel" id="broadcastType">
+            <option value="info">ℹ️ Info (blue)</option>
+            <option value="success">✅ Success (green)</option>
+            <option value="warning">⚠️ Warning (yellow)</option>
+            <option value="error">🚨 Alert (red)</option>
+          </select>
+        </div>
+        <button class="admin-btn admin-btn-purple" onclick="sendBroadcast()" style="margin-bottom:16px;"><i class="fas fa-bullhorn"></i> Send Broadcast</button>
+
+        <div class="form-section-title" style="margin-top:4px;">Active Broadcasts</div>
+        <div id="broadcastList" style="min-height:60px;">
+          <div style="color:var(--text3);font-size:13px;text-align:center;padding:20px;"><i class="fas fa-spinner fa-spin"></i> Loading broadcasts...</div>
+        </div>
+      </div>
+
+      <!-- Change Admin Password -->
       <div class="settings-card">
         <div class="settings-title"><i class="fas fa-shield-alt" style="color:var(--purple2);margin-right:8px;"></i> Change Admin Password</div>
         <p style="font-size:12px;color:var(--text3);margin-bottom:16px;">
@@ -821,6 +899,7 @@ export function adminPanelPage(section: string = 'dashboard') {
         <button class="admin-btn admin-btn-purple" onclick="changePassword()"><i class="fas fa-key"></i> Change Password</button>
       </div>
 
+      <!-- IMGBB Status -->
       <div class="settings-card">
         <div class="settings-title"><i class="fas fa-image" style="color:var(--purple2);margin-right:8px;"></i> IMGBB Image Upload Status</div>
         <div id="imgbbStatus" style="font-size:13px;color:var(--text3);">Checking...</div>
@@ -831,6 +910,7 @@ export function adminPanelPage(section: string = 'dashboard') {
         </div>
       </div>
 
+      <!-- API Keys Status -->
       <div class="settings-card">
         <div class="settings-title"><i class="fas fa-database" style="color:var(--purple2);margin-right:8px;"></i> API Keys Status</div>
         <div id="apiKeysStatus" style="font-size:13px;color:var(--text3);">API keys are configured as Cloudflare environment secrets and are never exposed here for security. Check Cloudflare dashboard for configuration.</div>

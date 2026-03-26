@@ -1,19 +1,27 @@
 import { layout } from './layout'
 
-export function aboutPage(): string {
+type SiteSettings = Record<string, string>
+
+export function aboutPage(settings: SiteSettings = {}): string {
+  const siteName = settings.site_name || 'DonghuaLand'
+  const siteDesc = settings.site_description || 'Your ultimate destination for Chinese anime (Donghua) streaming'
+  const contactEmail = settings.about_email || settings.contact_email || ''
+  const discord = settings.social_discord || ''
+  const twitter = settings.social_twitter || ''
+
   const content = `
 <div class="static-page-wrap">
   <div class="static-hero">
     <div class="static-hero-icon"><i class="fas fa-dragon"></i></div>
-    <h1>About <span>DonghuaLand</span></h1>
-    <p>Your ultimate destination for Chinese anime (Donghua) streaming</p>
+    <h1>About <span>${siteName}</span></h1>
+    <p>${siteDesc}</p>
   </div>
 
   <div class="static-content">
     <div class="static-section">
-      <h2><i class="fas fa-info-circle"></i> What is DonghuaLand?</h2>
-      <p>DonghuaLand is a free online platform dedicated to streaming Chinese animated series, commonly known as Donghua. We bring you the best of Chinese animation with high-quality video, English subtitles, and a seamless viewing experience.</p>
-      <p>Whether you're a long-time fan of cultivation stories, historical epics, or action-packed adventures, DonghuaLand has something for everyone.</p>
+      <h2><i class="fas fa-info-circle"></i> What is ${siteName}?</h2>
+      <p>${siteName} is a free online platform dedicated to streaming Chinese animated series, commonly known as Donghua. We bring you the best of Chinese animation with high-quality video, English subtitles, and a seamless viewing experience.</p>
+      <p>Whether you're a long-time fan of cultivation stories, historical epics, or action-packed adventures, ${siteName} has something for everyone.</p>
     </div>
 
     <div class="static-section">
@@ -47,22 +55,30 @@ export function aboutPage(): string {
     <div class="static-section">
       <h2><i class="fas fa-envelope"></i> Contact Us</h2>
       <p>Have questions or suggestions? We'd love to hear from you!</p>
-      <p>Email: <a href="mailto:hello@donghualand.vip" style="color:var(--purple2)">hello@donghualand.vip</a></p>
-      <p>Discord: <a href="#" style="color:var(--purple2)">discord.gg/donghualand</a></p>
+      ${contactEmail ? `<p>Email: <a href="mailto:${contactEmail}" style="color:var(--purple2)">${contactEmail}</a></p>` : ''}
+      ${discord ? `<p>Discord: <a href="${discord.startsWith('http') ? discord : 'https://discord.gg/' + discord}" target="_blank" style="color:var(--purple2)">${discord}</a></p>` : ''}
+      ${twitter ? `<p>Twitter: <a href="${twitter.startsWith('http') ? twitter : 'https://twitter.com/' + twitter.replace('@','')}" target="_blank" style="color:var(--purple2)">${twitter}</a></p>` : ''}
     </div>
   </div>
 </div>
 `
-  return layout('About Us - Donghualand', content)
+  return layout(`About Us - ${siteName}`, content)
 }
 
-export function contactPage(): string {
+export function contactPage(settings: SiteSettings = {}): string {
+  const siteName = settings.site_name || 'DonghuaLand'
+  const contactEmail = settings.contact_email || ''
+  const discord = settings.social_discord || ''
+  const twitter = settings.social_twitter || ''
+  const reddit = settings.social_reddit || ''
+  const telegram = settings.social_telegram || ''
+
   const content = `
 <div class="static-page-wrap">
   <div class="static-hero">
     <div class="static-hero-icon"><i class="fas fa-envelope"></i></div>
     <h1>Contact <span>Us</span></h1>
-    <p>Get in touch with the DonghuaLand team</p>
+    <p>Get in touch with the ${siteName} team</p>
   </div>
 
   <div class="static-content">
@@ -104,34 +120,46 @@ export function contactPage(): string {
         <div class="static-section">
           <h2>Other Ways to Reach Us</h2>
           <div class="contact-items">
+            ${contactEmail ? `
             <div class="contact-item">
               <i class="fas fa-envelope" style="color:var(--purple2)"></i>
               <div>
                 <strong>Email</strong>
-                <a href="mailto:hello@donghualand.vip">hello@donghualand.vip</a>
+                <a href="mailto:${contactEmail}">${contactEmail}</a>
               </div>
-            </div>
+            </div>` : ''}
+            ${discord ? `
             <div class="contact-item">
               <i class="fab fa-discord" style="color:#5865F2"></i>
               <div>
                 <strong>Discord</strong>
-                <a href="#">discord.gg/donghualand</a>
+                <a href="${discord.startsWith('http') ? discord : 'https://discord.gg/' + discord}" target="_blank">${discord}</a>
               </div>
-            </div>
+            </div>` : ''}
+            ${twitter ? `
             <div class="contact-item">
               <i class="fab fa-twitter" style="color:#1DA1F2"></i>
               <div>
-                <strong>Twitter</strong>
-                <a href="#">@donghualand</a>
+                <strong>Twitter / X</strong>
+                <a href="${twitter.startsWith('http') ? twitter : 'https://twitter.com/' + twitter.replace('@','')}" target="_blank">${twitter}</a>
               </div>
-            </div>
+            </div>` : ''}
+            ${reddit ? `
             <div class="contact-item">
               <i class="fab fa-reddit" style="color:#FF4500"></i>
               <div>
                 <strong>Reddit</strong>
-                <a href="#">r/donghualand</a>
+                <a href="${reddit.startsWith('http') ? reddit : 'https://reddit.com/r/' + reddit.replace('r/','')}" target="_blank">${reddit}</a>
               </div>
-            </div>
+            </div>` : ''}
+            ${telegram ? `
+            <div class="contact-item">
+              <i class="fab fa-telegram" style="color:#229ED9"></i>
+              <div>
+                <strong>Telegram</strong>
+                <a href="${telegram.startsWith('http') ? telegram : 'https://t.me/' + telegram.replace('@','')}" target="_blank">${telegram}</a>
+              </div>
+            </div>` : ''}
           </div>
           <div class="contact-note">
             <i class="fas fa-clock"></i>
@@ -150,10 +178,13 @@ window.submitContact = function(e) {
 };
 </script>
 `
-  return layout('Contact Us - Donghualand', content)
+  return layout(`Contact Us - ${siteName}`, content)
 }
 
-export function privacyPage(): string {
+export function privacyPage(settings: SiteSettings = {}): string {
+  const siteName = settings.site_name || 'DonghuaLand'
+  const privacyEmail = settings.privacy_email || settings.contact_email || ''
+
   const content = `
 <div class="static-page-wrap">
   <div class="static-hero">
@@ -185,16 +216,20 @@ export function privacyPage(): string {
       </div>
       <div class="static-section">
         <h2>6. Contact</h2>
-        <p>For privacy concerns, contact us at <a href="mailto:privacy@donghualand.vip" style="color:var(--purple2)">privacy@donghualand.vip</a></p>
+        <p>For privacy concerns, contact us at ${privacyEmail
+          ? `<a href="mailto:${privacyEmail}" style="color:var(--purple2)">${privacyEmail}</a>`
+          : `<a href="/contact" style="color:var(--purple2)">our contact page</a>`}</p>
       </div>
     </div>
   </div>
 </div>
 `
-  return layout('Privacy Policy - Donghualand', content)
+  return layout(`Privacy Policy - ${siteName}`, content)
 }
 
-export function termsPage(): string {
+export function termsPage(settings: SiteSettings = {}): string {
+  const siteName = settings.site_name || 'DonghuaLand'
+
   const content = `
 <div class="static-page-wrap">
   <div class="static-hero">
@@ -206,15 +241,15 @@ export function termsPage(): string {
     <div class="legal-doc">
       <div class="static-section">
         <h2>1. Acceptance of Terms</h2>
-        <p>By using DonghuaLand, you agree to these terms. If you do not agree, please do not use our service.</p>
+        <p>By using ${siteName}, you agree to these terms. If you do not agree, please do not use our service.</p>
       </div>
       <div class="static-section">
         <h2>2. Use of Service</h2>
-        <p>DonghuaLand is provided for personal, non-commercial use. You may not use our service for any illegal purpose or in violation of any regulations.</p>
+        <p>${siteName} is provided for personal, non-commercial use. You may not use our service for any illegal purpose or in violation of any regulations.</p>
       </div>
       <div class="static-section">
         <h2>3. Content</h2>
-        <p>DonghuaLand does not host any video files. All video content is served from third-party sources. We only provide a web interface to access publicly available content.</p>
+        <p>${siteName} does not host any video files. All video content is served from third-party sources. We only provide a web interface to access publicly available content.</p>
       </div>
       <div class="static-section">
         <h2>4. User Accounts</h2>
@@ -222,7 +257,7 @@ export function termsPage(): string {
       </div>
       <div class="static-section">
         <h2>5. Disclaimer</h2>
-        <p>DonghuaLand is provided "as is" without warranties of any kind. We do not guarantee uninterrupted access or availability of any specific content.</p>
+        <p>${siteName} is provided "as is" without warranties of any kind. We do not guarantee uninterrupted access or availability of any specific content.</p>
       </div>
       <div class="static-section">
         <h2>6. Changes</h2>
@@ -232,10 +267,13 @@ export function termsPage(): string {
   </div>
 </div>
 `
-  return layout('Terms of Service - Donghualand', content)
+  return layout(`Terms of Service - ${siteName}`, content)
 }
 
-export function dmcaPage(): string {
+export function dmcaPage(settings: SiteSettings = {}): string {
+  const siteName = settings.site_name || 'DonghuaLand'
+  const dmcaEmail = settings.dmca_email || settings.contact_email || ''
+
   const content = `
 <div class="static-page-wrap">
   <div class="static-hero">
@@ -247,27 +285,35 @@ export function dmcaPage(): string {
     <div class="legal-doc">
       <div class="static-section">
         <h2>DMCA Compliance</h2>
-        <p>DonghuaLand respects the intellectual property rights of others and expects users to do the same. In accordance with the Digital Millennium Copyright Act (DMCA), we will respond to notices of alleged copyright infringement.</p>
+        <p>${siteName} respects the intellectual property rights of others and expects users to do the same. In accordance with the Digital Millennium Copyright Act (DMCA), we will respond to notices of alleged copyright infringement.</p>
       </div>
       <div class="static-section">
         <h2>Our Position</h2>
-        <p>DonghuaLand does not host, store, or distribute any video content. We are a platform that indexes and links to content available on the internet. All video content is hosted on third-party servers.</p>
+        <p>${siteName} does not host, store, or distribute any video content. We are a platform that indexes and links to content available on the internet. All video content is hosted on third-party servers.</p>
       </div>
       <div class="static-section">
         <h2>Filing a DMCA Notice</h2>
         <p>If you believe your copyrighted work has been used in a way that constitutes infringement, please send a notice to:</p>
+        ${dmcaEmail ? `
         <div class="contact-item" style="margin: 16px 0">
           <i class="fas fa-envelope" style="color:var(--purple2)"></i>
           <div>
             <strong>DMCA Agent</strong>
-            <a href="mailto:dmca@donghualand.vip">dmca@donghualand.vip</a>
+            <a href="mailto:${dmcaEmail}">${dmcaEmail}</a>
           </div>
-        </div>
+        </div>` : `
+        <div class="contact-item" style="margin: 16px 0">
+          <i class="fas fa-envelope" style="color:var(--purple2)"></i>
+          <div>
+            <strong>DMCA Agent</strong>
+            <a href="/contact">Use our contact form</a>
+          </div>
+        </div>`}
         <p>Your notice must include: (1) identification of the copyrighted work, (2) identification of the infringing material, (3) your contact information, (4) a statement of good faith belief, (5) a statement of accuracy under penalty of perjury, (6) your signature.</p>
       </div>
     </div>
   </div>
 </div>
 `
-  return layout('DMCA Notice - Donghualand', content)
+  return layout(`DMCA Notice - ${siteName}`, content)
 }
