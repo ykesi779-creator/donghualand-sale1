@@ -447,20 +447,46 @@ async function ensureSettingsTable(db: D1Database) {
   } catch { /* table may already exist, ignore */ }
 }
 
+// Helper: ensure broadcasts table exists
+async function ensureBroadcastTable(db: D1Database) {
+  try {
+    await db.prepare(`CREATE TABLE IF NOT EXISTS broadcasts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      message TEXT NOT NULL,
+      type TEXT NOT NULL DEFAULT 'info',
+      is_active INTEGER NOT NULL DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`).run()
+  } catch { /* ignore */ }
+}
+
+// Default settings
+const DEFAULT_SETTINGS: Record<string, string> = {
+  site_name: 'DonghuaLand',
+  site_description: 'Watch Chinese Anime (Donghua) online for free in HD.',
+  contact_email: '',
+  dmca_email: '',
+  privacy_email: '',
+  about_email: '',
+  registration_enabled: '1',
+  maintenance_mode: '0',
+  social_discord: '',
+  social_twitter: '',
+  social_reddit: '',
+  social_telegram: '',
+  social_facebook: '',
+  social_youtube: '',
+  social_instagram: '',
+  social_tiktok: '',
+}
+
 adminRoutes.get('/settings', requireAdmin, async (c) => {
   const db = c.env.DB
-  // Start with defaults
-  const result: Record<string, string> = {
-    site_name: 'DonghuaLand',
-    site_description: 'Watch Chinese Anime (Donghua) online for free in HD.',
-    contact_email: '',
-    registration_enabled: '1',
-    maintenance_mode: '0',
-  }
+  const result: Record<string, string> = { ...DEFAULT_SETTINGS }
   try {
     await ensureSettingsTable(db)
     const settings = await db.prepare('SELECT * FROM settings').all()
-    // Override with actual DB values
     if (settings.results) {
       settings.results.forEach((s: any) => { result[s.key] = s.value })
     }
@@ -479,8 +505,67 @@ adminRoutes.post('/settings', requireAdmin, async (c) => {
     for (const [key, value] of Object.entries(body)) {
       await db.prepare(
         'INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)'
-      ).bind(key, String(value)).run()
+      ).bind(key, String(value ?? '')).run()
     }
+    return c.json({ success: true })
+  } catch (e: any) { return c.json({ error: e.message }, 500) }
+})
+
+// ============ BROADCASTS ============
+
+adminRoutes.get('/broadcasts', requireAdmin, async (c) => {
+  const db = c.env.DB
+  try {
+    await ensureBroadcastTable(db)
+    const data = await db.prepare(
+      'SELECT * FROM broadcasts ORDER BY created_at DESC LIMIT 50'
+    ).all()
+    return c.json({ success: true, data: data.results || [] })
+  } catch (e: any) { return c.json({ error: e.message }, 500) }
+})
+
+adminRoutes.post('/broadcasts', requireAdmin, async (c) => {
+  const db = c.env.DB
+  try {
+    await ensureBroadcastTable(db)
+    const { message, type } = await c.req.json()
+    if (!message || !message.trim()) return c.json({ error: 'Message is required' }, 400)
+    const validTypes = ['info', 'warning', 'success', 'error']
+    const broadcastType = validTypes.includes(type) ? type : 'info'
+    const r = await db.prepare(
+      'INSERT INTO broadcasts (message, type, is_active) VALUES (?, ?, 1)'
+    ).bind(message.trim(), broadcastType).run()
+    return c.json({ success: true, id: r.meta.last_row_id })
+  } catch (e: any) { return c.json({ error: e.message }, 500) }
+})
+
+adminRoutes.patch('/broadcasts/:id', requireAdmin, async (c) => {
+  const db = c.env.DB
+  const id = c.req.param('id')
+  try {
+    await ensureBroadcastTable(db)
+    const { is_active, message, type } = await c.req.json()
+    if (message !== undefined) {
+      const validTypes = ['info', 'warning', 'success', 'error']
+      const bType = validTypes.includes(type) ? type : 'info'
+      await db.prepare(
+        'UPDATE broadcasts SET message=?, type=?, is_active=?, updated_at=CURRENT_TIMESTAMP WHERE id=?'
+      ).bind(message.trim(), bType, is_active !== undefined ? (is_active ? 1 : 0) : 1, parseInt(id)).run()
+    } else {
+      await db.prepare(
+        'UPDATE broadcasts SET is_active=?, updated_at=CURRENT_TIMESTAMP WHERE id=?'
+      ).bind(is_active ? 1 : 0, parseInt(id)).run()
+    }
+    return c.json({ success: true })
+  } catch (e: any) { return c.json({ error: e.message }, 500) }
+})
+
+adminRoutes.delete('/broadcasts/:id', requireAdmin, async (c) => {
+  const db = c.env.DB
+  const id = c.req.param('id')
+  try {
+    await ensureBroadcastTable(db)
+    await db.prepare('DELETE FROM broadcasts WHERE id=?').bind(parseInt(id)).run()
     return c.json({ success: true })
   } catch (e: any) { return c.json({ error: e.message }, 500) }
 })

@@ -148,6 +148,9 @@ ${extraHead}
   </div>
 </div>
 
+<!-- ==================== BROADCAST BANNER ==================== -->
+<div id="broadcastBanner" style="display:none;"></div>
+
 <!-- ==================== MAIN CONTENT ==================== -->
 <main class="site-main">
 ${content}
@@ -160,14 +163,11 @@ ${content}
       <div class="footer-brand">
         <a href="/" class="footer-logo">
           <div class="fli"><i class="fas fa-dragon"></i></div>
-          <span>Donghua<span>Land</span></span>
+          <span id="footerSiteName">Donghua<span>Land</span></span>
         </a>
-        <p class="footer-tagline">Your world of anime, unlocked.</p>
-        <div class="footer-social">
-          <a href="#" class="social-btn-sm" title="Discord"><i class="fab fa-discord"></i></a>
-          <a href="#" class="social-btn-sm" title="Twitter"><i class="fab fa-twitter"></i></a>
-          <a href="#" class="social-btn-sm" title="Reddit"><i class="fab fa-reddit"></i></a>
-          <a href="#" class="social-btn-sm" title="Telegram"><i class="fab fa-telegram"></i></a>
+        <p class="footer-tagline" id="footerTagline">Your world of anime, unlocked.</p>
+        <div class="footer-social" id="footerSocial">
+          <!-- Populated dynamically from DB settings -->
         </div>
       </div>
       <div class="footer-links">
@@ -204,7 +204,7 @@ ${content}
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© 2026 DonghuaLand. All rights reserved.</p>
+      <p id="footerCopy">© 2026 DonghuaLand. All rights reserved.</p>
       <p>This site only provides web page services and does not store any content.</p>
     </div>
   </div>

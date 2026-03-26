@@ -340,6 +340,66 @@ function initWatchlistBtn() {
   }
 }
 
+// ============ BROADCAST BANNER ============
+function initBroadcastBanner() {
+  const banner = document.getElementById('broadcastBanner');
+  if (!banner) return;
+  fetch('/api/broadcasts/active')
+    .then(r => r.json())
+    .then(d => {
+      if (!d.data || d.data.length === 0) return;
+      const typeStyles = {
+        info:    { bg: '#1a2a3a', border: 'rgba(52,152,219,0.5)', color: '#74b9ff', icon: 'fa-info-circle' },
+        success: { bg: '#1a3a2a', border: 'rgba(0,208,132,0.5)',  color: '#00d084', icon: 'fa-check-circle' },
+        warning: { bg: '#3a2a0a', border: 'rgba(241,196,15,0.5)', color: '#fdcb6e', icon: 'fa-exclamation-triangle' },
+        error:   { bg: '#3a1a1a', border: 'rgba(232,64,64,0.5)',  color: '#e84040', icon: 'fa-times-circle' },
+      };
+      // Show the most recent active broadcast
+      const bc = d.data[0];
+      const ts = typeStyles[bc.type] || typeStyles.info;
+      banner.style.cssText = `
+        display:block; position:relative; z-index:500;
+        background:${ts.bg}; border-bottom:1px solid ${ts.border};
+        padding:10px 16px; text-align:center;
+      `;
+      banner.innerHTML = `
+        <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;">
+          <i class="fas ${ts.icon}" style="color:${ts.color};flex-shrink:0;"></i>
+          <span style="font-size:13px;color:${ts.color};font-weight:500;">${bc.message}</span>
+          <button onclick="this.closest('#broadcastBanner').style.display='none'" style="background:none;border:none;color:${ts.color};cursor:pointer;font-size:16px;padding:0 4px;margin-left:8px;opacity:0.7;" title="Dismiss">&times;</button>
+        </div>`;
+    })
+    .catch(() => {});
+}
+
+// ============ FOOTER SOCIAL LINKS ============
+function initFooterSocials() {
+  const socialContainer = document.getElementById('footerSocial');
+  if (!socialContainer) return;
+  fetch('/api/site-settings')
+    .then(r => r.json())
+    .then(d => {
+      if (!d.data) return;
+      const s = d.data;
+      const links = [
+        { key: 'social_discord',   icon: 'fab fa-discord',   color: '#5865F2', label: 'Discord',   url: (v) => v.startsWith('http') ? v : 'https://discord.gg/' + v },
+        { key: 'social_twitter',   icon: 'fab fa-twitter',   color: '#1DA1F2', label: 'Twitter',   url: (v) => v.startsWith('http') ? v : 'https://twitter.com/' + v.replace('@','') },
+        { key: 'social_reddit',    icon: 'fab fa-reddit',    color: '#FF4500', label: 'Reddit',    url: (v) => v.startsWith('http') ? v : 'https://reddit.com/r/' + v.replace('r/','') },
+        { key: 'social_telegram',  icon: 'fab fa-telegram',  color: '#229ED9', label: 'Telegram',  url: (v) => v.startsWith('http') ? v : 'https://t.me/' + v.replace('@','') },
+        { key: 'social_facebook',  icon: 'fab fa-facebook',  color: '#1877F2', label: 'Facebook',  url: (v) => v.startsWith('http') ? v : 'https://facebook.com/' + v },
+        { key: 'social_youtube',   icon: 'fab fa-youtube',   color: '#FF0000', label: 'YouTube',   url: (v) => v.startsWith('http') ? v : 'https://youtube.com/' + v },
+        { key: 'social_instagram', icon: 'fab fa-instagram', color: '#E1306C', label: 'Instagram', url: (v) => v.startsWith('http') ? v : 'https://instagram.com/' + v },
+        { key: 'social_tiktok',    icon: 'fab fa-tiktok',    color: '#ffffff',  label: 'TikTok',   url: (v) => v.startsWith('http') ? v : 'https://tiktok.com/@' + v.replace('@','') },
+      ];
+      const html = links
+        .filter(l => s[l.key] && s[l.key].trim())
+        .map(l => `<a href="${l.url(s[l.key].trim())}" target="_blank" rel="noopener" class="footer-social-link" title="${l.label}" style="color:${l.color}"><i class="${l.icon}"></i></a>`)
+        .join('');
+      socialContainer.innerHTML = html || '';
+    })
+    .catch(() => {});
+}
+
 // ============ INIT ============
 document.addEventListener('DOMContentLoaded', () => {
   checkAuth();
@@ -352,4 +412,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initScheduleTabs();
   initHeroSlider();
   initWatchlistBtn();
+  initBroadcastBanner();
+  initFooterSocials();
 });

@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { serveStatic } from 'hono/cloudflare-workers'
-import { getCookie, setCookie, deleteCookie } from 'hono/cookie'
+import { getCookie } from 'hono/cookie'
 
 // Routes
 import { animeRoutes } from './routes/anime'
@@ -29,6 +29,39 @@ import { settingsPage } from './pages/settings'
 import { schedulePage } from './pages/schedule'
 import { aboutPage, contactPage, privacyPage, termsPage, dmcaPage } from './pages/staticPages'
 
+// ============================================================
+// HELPERS
+// ============================================================
+
+const DEFAULT_SETTINGS: Record<string, string> = {
+  site_name: 'DonghuaLand',
+  site_description: 'Watch Chinese Anime (Donghua) online for free in HD.',
+  contact_email: '',
+  dmca_email: '',
+  privacy_email: '',
+  about_email: '',
+  registration_enabled: '1',
+  maintenance_mode: '0',
+  social_discord: '',
+  social_twitter: '',
+  social_reddit: '',
+  social_telegram: '',
+  social_facebook: '',
+  social_youtube: '',
+  social_instagram: '',
+  social_tiktok: '',
+}
+
+async function getSiteSettings(db: D1Database | undefined): Promise<Record<string, string>> {
+  const result: Record<string, string> = { ...DEFAULT_SETTINGS }
+  if (!db) return result
+  try {
+    const rows = await db.prepare('SELECT key, value FROM settings').all()
+    if (rows.results) rows.results.forEach((s: any) => { result[s.key] = s.value })
+  } catch { /* return defaults */ }
+  return result
+}
+
 type Bindings = {
   DB: D1Database
   TMDB_API_KEY: string
@@ -50,6 +83,59 @@ app.use('/api/*', cors({
 // Static files
 app.use('/static/*', serveStatic({ root: './' }))
 
+// ============================================================
+// MAINTENANCE MODE MIDDLEWARE
+// Blocks all non-admin routes when maintenance_mode = '1'
+// ============================================================
+app.use('*', async (c, next) => {
+  const path = new URL(c.req.url).pathname
+  // Always allow admin routes and static assets through
+  const isExempt = path.startsWith('/admin') ||
+    path.startsWith('/api/admin') ||
+    path.startsWith('/static') ||
+    path === '/api/site-settings' ||
+    path === '/api/broadcasts/active'
+  if (isExempt) return next()
+
+  const db = c.env?.DB
+  if (db) {
+    try {
+      const row = await db.prepare(
+        "SELECT value FROM settings WHERE key='maintenance_mode'"
+      ).first() as any
+      if (row && row.value === '1') {
+        // Show maintenance page for HTML requests
+        const accept = c.req.header('Accept') || ''
+        if (accept.includes('text/html')) {
+          return c.html(`<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maintenance - DonghuaLand</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0f;color:#f0f0f5;font-family:system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.wrap{text-align:center;max-width:480px}
+.icon{font-size:72px;color:#6c5ce7;margin-bottom:24px}
+h1{font-size:32px;font-weight:900;margin-bottom:12px}
+p{font-size:15px;color:#808090;line-height:1.7;margin-bottom:24px}
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(108,92,231,0.15);color:#a29bfe;border:1px solid rgba(108,92,231,0.35);padding:8px 20px;border-radius:999px;font-size:13px;font-weight:700}
+</style></head><body>
+<div class="wrap">
+  <div class="icon"><i class="fas fa-tools"></i></div>
+  <h1>Under Maintenance</h1>
+  <p>We are currently performing scheduled maintenance. We'll be back shortly. Thank you for your patience!</p>
+  <div class="badge"><i class="fas fa-clock"></i> Back Soon</div>
+</div>
+</body></html>`, 503)
+        }
+        // For API requests return JSON
+        return c.json({ error: 'Site is under maintenance', maintenance: true }, 503)
+      }
+    } catch { /* ignore, proceed normally */ }
+  }
+  return next()
+})
+
 // API Routes
 app.route('/api/anime', animeRoutes)
 app.route('/api/episodes', episodeRoutes)
@@ -59,6 +145,48 @@ app.route('/api/search', searchRoutes)
 app.route('/api/tmdb', tmdbRoutes)
 app.route('/api/comments', commentRoutes)
 app.route('/api/upload', uploadRoutes)
+
+// ============================================================
+// PUBLIC SETTINGS & BROADCASTS API
+// ============================================================
+
+// Public site settings (for frontend to read site name, socials, etc.)
+app.get('/api/site-settings', async (c) => {
+  const db = c.env?.DB
+  const settings = await getSiteSettings(db)
+  // Only expose safe public fields
+  return c.json({
+    success: true,
+    data: {
+      site_name: settings.site_name,
+      site_description: settings.site_description,
+      contact_email: settings.contact_email,
+      dmca_email: settings.dmca_email,
+      privacy_email: settings.privacy_email,
+      about_email: settings.about_email,
+      social_discord: settings.social_discord,
+      social_twitter: settings.social_twitter,
+      social_reddit: settings.social_reddit,
+      social_telegram: settings.social_telegram,
+      social_facebook: settings.social_facebook,
+      social_youtube: settings.social_youtube,
+      social_instagram: settings.social_instagram,
+      social_tiktok: settings.social_tiktok,
+    }
+  })
+})
+
+// Public active broadcasts
+app.get('/api/broadcasts/active', async (c) => {
+  const db = c.env?.DB
+  if (!db) return c.json({ success: true, data: [] })
+  try {
+    const data = await db.prepare(
+      'SELECT id, message, type FROM broadcasts WHERE is_active=1 ORDER BY created_at DESC LIMIT 5'
+    ).all()
+    return c.json({ success: true, data: data.results || [] })
+  } catch { return c.json({ success: true, data: [] }) }
+})
 
 // ============================================================
 // FRONTEND PAGES
@@ -292,12 +420,27 @@ app.get('/schedule', async (c) => {
   return c.html(schedulePage())
 })
 
-// Static pages
-app.get('/about', (c) => c.html(aboutPage()))
-app.get('/contact', (c) => c.html(contactPage()))
-app.get('/privacy', (c) => c.html(privacyPage()))
-app.get('/terms', (c) => c.html(termsPage()))
-app.get('/dmca', (c) => c.html(dmcaPage()))
+// Static pages - load emails from DB settings
+app.get('/about', async (c) => {
+  const settings = await getSiteSettings(c.env?.DB)
+  return c.html(aboutPage(settings))
+})
+app.get('/contact', async (c) => {
+  const settings = await getSiteSettings(c.env?.DB)
+  return c.html(contactPage(settings))
+})
+app.get('/privacy', async (c) => {
+  const settings = await getSiteSettings(c.env?.DB)
+  return c.html(privacyPage(settings))
+})
+app.get('/terms', async (c) => {
+  const settings = await getSiteSettings(c.env?.DB)
+  return c.html(termsPage(settings))
+})
+app.get('/dmca', async (c) => {
+  const settings = await getSiteSettings(c.env?.DB)
+  return c.html(dmcaPage(settings))
+})
 
 // User pages
 app.get('/user/watchlist', (c) => c.html(watchlistPage()))
