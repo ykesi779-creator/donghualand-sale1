@@ -148,11 +148,10 @@ ${extraHead}
   </div>
 </div>
 
-<!-- ==================== BROADCAST BANNER ==================== -->
-<div id="broadcastBanner" style="display:none;"></div>
-
 <!-- ==================== MAIN CONTENT ==================== -->
 <main class="site-main">
+<!-- ==================== BROADCAST BANNER ==================== -->
+<div id="broadcastBanner" style="display:none;"></div>
 ${content}
 </main>
 
