@@ -33,7 +33,7 @@ export function loginPage(error?: string) {
         <label class="form-check">
           <input type="checkbox" id="rememberMe"> Remember me
         </label>
-        <a href="/user/forgot" class="forgot-link">Forgot password?</a>
+        <a href="#" class="forgot-link" onclick="handleForgotPassword(event)">Forgot password?</a>
       </div>
       <button type="submit" class="btn-submit" id="loginBtn">
         Sign In
@@ -52,6 +52,29 @@ function togglePwd(id, btn) {
   if (inp.type === 'password') { inp.type = 'text'; btn.classList.replace('fa-eye', 'fa-eye-slash'); }
   else { inp.type = 'password'; btn.classList.replace('fa-eye-slash', 'fa-eye'); }
 }
+
+function handleForgotPassword(e) {
+  e.preventDefault();
+  if (window.showToast) {
+    window.showToast('Password reset is not available at this time. Please contact support.', 'info');
+  }
+}
+
+// Show toast if redirected from /user/forgot
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('forgot') === '1') {
+    setTimeout(function() {
+      if (window.showToast) {
+        window.showToast('Password reset is not available at this time. Please contact support.', 'info');
+      }
+    }, 300);
+    // Clean URL
+    if (history.replaceState) {
+      history.replaceState(null, '', '/user/login');
+    }
+  }
+})();
 
 async function doLogin(e) {
   e.preventDefault();

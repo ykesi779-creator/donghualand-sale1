@@ -79,9 +79,9 @@ export function searchPage(data: {
           ${statuses.map(s => `<option value="${s}"${status === s ? ' selected' : ''}>${s}</option>`).join('')}
         </select>
       </div>
-      <div style="display:flex; gap:8px; align-items:flex-end;">
+      <div style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
         <button type="submit" class="btn-filter"><i class="fas fa-search"></i> Search</button>
-        <a href="/search" class="btn-reset">Reset</a>
+        <a href="/search" class="btn-reset"><i class="fas fa-undo" style="font-size:11px;"></i> Reset</a>
       </div>
     </div>
     <!-- Quick genre chips -->

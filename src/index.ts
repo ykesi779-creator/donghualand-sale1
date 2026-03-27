@@ -395,6 +395,7 @@ app.get('/api/search/quick', async (c) => {
 // User auth pages
 app.get('/user/login', (c) => c.html(loginPage()))
 app.get('/user/register', (c) => c.html(registerPage()))
+app.get('/user/forgot', (c) => c.redirect('/user/login?forgot=1'))
 
 // ============================================================
 // ADMIN PANEL - Protected at /admin
