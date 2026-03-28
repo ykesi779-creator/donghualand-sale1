@@ -120,6 +120,40 @@ ${breadcrumb([
         <p style="font-size:13px; color:var(--text2); line-height:1.7; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${anime.description}</p>
       </div>` : ''}
 
+      <!-- ====== EPISODE GRID (below player, wrap layout) ====== -->
+      <div class="ep-grid-section" id="epGridSection">
+        <div class="ep-grid-head">
+          <div class="ep-grid-title">
+            <i class="fas fa-th-large"></i>
+            Episodes
+            <span class="ep-grid-count">${allEpisodes.length} total</span>
+          </div>
+          <div class="ep-grid-search-wrap">
+            <i class="fas fa-search ep-grid-search-icon"></i>
+            <input type="text" class="ep-grid-search" id="epGridSearch"
+              placeholder="Search ep..." oninput="filterEpisodeGrid(this.value)" autocomplete="off">
+          </div>
+        </div>
+        <div class="ep-grid-body">
+          <div class="ep-grid-wrap" id="epGridWrap">
+            ${[...allEpisodes].sort((a, b) => a.episode_number - b.episode_number).map(ep => {
+              const isActive = ep.episode_number === episode.episode_number
+              return `<a href="/watch/${anime.slug}-episode-${ep.episode_number}"
+                 class="ep-grid-item${isActive ? ' active' : ''}"
+                 title="Episode ${ep.episode_number}${ep.title ? ': ' + ep.title : ''}"
+                 data-epnum="${ep.episode_number}">
+                <img src="${anime.cover_image || ''}" alt="EP ${ep.episode_number}" class="ep-grid-thumb"
+                     onerror="this.style.background='var(--bg5)';this.style.minHeight='70px';">
+                <span class="ep-grid-num">${isActive ? '<i class="fas fa-volume-up" style="font-size:8px;color:var(--purple2);display:block;margin-bottom:2px;"></i>' : ''}EP ${ep.episode_number}</span>
+              </a>`
+            }).join('')}
+          </div>
+          <div class="ep-grid-empty" id="epGridEmpty">
+            <i class="fas fa-search" style="margin-right:6px;"></i> No episodes found
+          </div>
+        </div>
+      </div>
+
       <!-- ====== COMMENTS SECTION ====== -->
       <div class="comments-section" id="commentsSection">
         <div class="comments-hd">

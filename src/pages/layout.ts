@@ -14,6 +14,12 @@ export function layout(title: string, content: string, extraHead: string = ''): 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css">
 <link rel="stylesheet" href="/static/style.css">
+<script>
+  (function(){
+    var t = localStorage.getItem('siteTheme') || 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
 ${extraHead}
 </head>
 <body>
@@ -65,6 +71,11 @@ ${extraHead}
       <!-- Desktop search toggle icon (shown on desktop, triggers search box) -->
       <button class="desktop-search-btn" id="desktopSearchBtn" onclick="toggleDesktopSearch()" title="Search">
         <i class="fas fa-search"></i>
+      </button>
+
+      <!-- Theme Toggle Button (Dark / Light Mode) -->
+      <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Light/Dark Mode" aria-label="Toggle theme">
+        <i class="fas fa-moon" id="themeIcon"></i>
       </button>
 
       <!-- Desktop: Sign In / Join buttons (hidden when logged in) -->
