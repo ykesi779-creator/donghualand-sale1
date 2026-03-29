@@ -1,15 +1,14 @@
 import { layout } from './layout'
 
-export function registerPage(siteName: string = 'DonghuaLand') {
+export function registerPage(siteName: string = 'ANIME WORLD', siteUrl: string = '') {
   const content = `
 <div class="auth-page">
   <div class="auth-card">
     <!-- Logo -->
     <a href="/" class="auth-logo">
       <div class="li"><i class="fas fa-dragon"></i></div>
-      Donghua<span>Land</span>
+      ${siteName}
     </a>
-    <p class="auth-sub">Your world of Chinese anime, unlocked.</p>
 
     <h2 class="auth-title">Create Account</h2>
     <p style="text-align:center; font-size:13px; color:var(--text3); margin-bottom:24px;">Join the ${siteName} community today — it's free!</p>
@@ -95,5 +94,5 @@ async function doRegister(e) {
 }
 </script>
 `
-  return layout(`Create Account - ${siteName}`, content, '', siteName)
+  return layout(`Create Account - ${siteName}`, content, '', siteName, siteUrl)
 }
