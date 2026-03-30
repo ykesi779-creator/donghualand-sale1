@@ -236,6 +236,7 @@ app.get('/', async (c) => {
     `).all()
 
     const settings = await getSiteSettings(db, c.env?.SITE_NAME)
+    const homeUrl = new URL(c.req.url)
     return c.html(homePage({
       featured: featured.results as any[],
       trending: trending.results as any[],
@@ -244,9 +245,11 @@ app.get('/', async (c) => {
       ongoing: ongoing.results as any[],
       schedule: schedule.results as any[],
       siteName: settings.site_name,
+      siteUrl: homeUrl.origin,
     }))
   } catch (e: any) {
-    const siteName = c.env?.SITE_NAME || 'DonghuaLand'
+    const siteName = c.env?.SITE_NAME || 'ANIME WORLD'
+    const homeUrl = new URL(c.req.url)
     // Show empty home page with welcome message instead of demo data
     return c.html(homePage({
       featured: [],
@@ -256,6 +259,7 @@ app.get('/', async (c) => {
       ongoing: [],
       schedule: [],
       siteName,
+      siteUrl: homeUrl.origin,
     }))
   }
 })
@@ -412,11 +416,13 @@ app.get('/api/search/quick', async (c) => {
 // User auth pages
 app.get('/user/login', async (c) => {
   const settings = await getSiteSettings(c.env?.DB, c.env?.SITE_NAME)
-  return c.html(loginPage(settings.site_name))
+  const url = new URL(c.req.url)
+  return c.html(loginPage(settings.site_name, undefined, url.origin))
 })
 app.get('/user/register', async (c) => {
   const settings = await getSiteSettings(c.env?.DB, c.env?.SITE_NAME)
-  return c.html(registerPage(settings.site_name))
+  const url = new URL(c.req.url)
+  return c.html(registerPage(settings.site_name, url.origin))
 })
 app.get('/user/forgot', (c) => c.redirect('/user/login?forgot=1'))
 
