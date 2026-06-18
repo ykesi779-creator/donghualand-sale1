@@ -795,6 +795,21 @@ section.hero-slider + section.hero-slider { display: none !important; }
 }
 .acard-status.done { background: linear-gradient(90deg, var(--blue), #60a5fa); }
 
+/* Recently Updated - NEW badge on card */
+.acard-new-badge {
+  position: absolute; bottom: 7px; left: 7px;
+  background: linear-gradient(135deg, var(--accent), #0891b2);
+  padding: 3px 7px; border-radius: 4px;
+  font-size: 8px; font-weight: 800; color: #fff; text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex; align-items: center; gap: 3px;
+}
+.acard-ep-new {
+  background: linear-gradient(135deg, var(--purple), #6d28d9) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+}
+
 .acard-body { padding: 9px 10px 11px; }
 .acard-name {
   font-size: 12.5px; font-weight: 700; color: var(--text1);
@@ -1126,6 +1141,74 @@ section.hero-slider + section.hero-slider { display: none !important; }
 .day-picker-btn.today-btn { border-color: rgba(16,185,129,0.4); }
 .day-picker-btn.today-btn .dpb-day { color: var(--green); }
 .day-picker-btn.active .dpb-day { color: rgba(255,255,255,0.8); }
+.day-picker-btn .dpb-month { font-size: 9px; font-weight: 700; color: var(--text4); text-transform: uppercase; letter-spacing: 0.5px; }
+.day-picker-btn.active .dpb-month { color: rgba(255,255,255,0.6); }
+
+/* ---- Schedule day header (date label row) ---- */
+.sched-day-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0 4px; margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.sched-day-label {
+  font-size: 13px; font-weight: 700; color: var(--text2);
+  display: flex; align-items: center; gap: 7px;
+}
+.sched-day-label i { color: var(--purple3); }
+.sched-today-badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 20px;
+  background: rgba(16,185,129,0.12); color: var(--green);
+  border: 1px solid rgba(16,185,129,0.3);
+  font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+/* ---- Schedule episode badge on poster ---- */
+.sched-ep-badge {
+  position: absolute; bottom: 7px; right: 7px;
+  background: linear-gradient(135deg, var(--purple), #4f46e5);
+  color: #fff; padding: 3px 8px; border-radius: 4px;
+  font-size: 9px; font-weight: 800; text-transform: uppercase;
+}
+
+/* ---- Schedule next episode row ---- */
+.sched-next-ep {
+  font-size: 10px; font-weight: 700; color: var(--accent2);
+  display: flex; align-items: center; gap: 4px;
+}
+.sched-next-ep i { font-size: 9px; }
+
+/* ---- Schedule date pill inside time row ---- */
+.sched-date-pill {
+  background: var(--bg4); border: 1px solid var(--border2);
+  padding: 1px 6px; border-radius: 4px;
+  font-size: 9px; color: var(--text3); margin-left: 4px;
+}
+
+/* ---- Schedule notes row ---- */
+.sched-notes {
+  font-size: 9px; color: var(--text4);
+  display: flex; align-items: center; gap: 3px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* ---- Upcoming episode badge in future list ---- */
+.future-ep-badge {
+  display: inline-flex; align-items: center;
+  padding: 3px 9px; border-radius: var(--r6);
+  background: linear-gradient(135deg, var(--purple), #4f46e5);
+  color: #fff; font-size: 11px; font-weight: 800;
+  white-space: nowrap;
+}
+
+/* ---- Dated sched tabs (with date number inside tab) ---- */
+.sched-tabs-dated .sched-tab-dated {
+  flex-direction: column; gap: 2px; padding: 10px 14px;
+  align-items: center; min-width: 52px;
+}
+.stab-day { font-size: 11px; font-weight: 700; }
+.stab-date { font-size: 15px; font-weight: 900; line-height: 1; }
 
 /* ================================================================
    ANIME DETAIL PAGE
@@ -2502,13 +2585,19 @@ section.hero-slider + section.hero-slider { display: none !important; }
   -webkit-overflow-scrolling: touch;
 }
 .home-schedule-section .sched-tab {
-  padding: 8px 18px;
-  border-radius: var(--r50);
+  padding: 8px 14px;
+  border-radius: var(--r10);
   border: 1px solid var(--border2);
   border-bottom: 1px solid var(--border2);
   margin-bottom: 0;
-  font-size: 13px;
+  font-size: 12px;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  min-width: 48px;
 }
+.home-schedule-section .sched-tab .stab-day { font-size: 11px; }
+.home-schedule-section .sched-tab .stab-date { font-size: 14px; font-weight: 900; }
 .home-schedule-section .sched-tab.active {
   background: linear-gradient(135deg, var(--purple) 0%, #4f46e5 100%);
   border-color: var(--purple);
@@ -2520,6 +2609,10 @@ section.hero-slider + section.hero-slider { display: none !important; }
 .home-schedule-section .sched-grid {
   grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
   padding: 0;
+}
+.home-schedule-section .sched-day-header {
+  padding: 8px 0 6px;
+  margin-bottom: 10px;
 }
 
 /* ================================================================
