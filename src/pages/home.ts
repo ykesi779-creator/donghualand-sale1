@@ -179,64 +179,72 @@ export function homePage(data: {
     </p>
 
     <!-- Day tabs with dates -->
-    <div class="sched-tabs sched-tabs-dated" id="homeSchedTabs">
+    <div class="home-sched-tabs" id="homeSchedTabs">
       ${days.map((d, i) => `
-      <button class="sched-tab sched-tab-dated${i === todayIdx ? ' active' : ''}" data-day="${d}" onclick="homeSwitchDay('${d}', this)">
-        <span class="stab-day">${d.slice(0, 3)}</span>
-        <span class="stab-date">${weekDates[i].date}</span>
-        ${i === todayIdx ? '<span class="today-dot"></span>' : ''}
+      <button class="home-sched-tab${i === todayIdx ? ' active' : ''}" data-day="${d}" onclick="homeSwitchDay('${d}', this)">
+        <span class="hstab-day">${d.slice(0, 3)}</span>
+        <span class="hstab-date">${weekDates[i].date}</span>
+        ${i === todayIdx ? '<span class="hstab-today-dot"></span>' : ''}
       </button>`).join('')}
     </div>
 
     <!-- Day content panels — only active one is visible -->
     ${days.map((d, i) => `
-    <div class="sched-day${i === todayIdx ? ' active' : ''}" id="home-sched-${d}">
+    <div class="home-sched-panel${i === todayIdx ? ' active' : ''}" id="home-sched-${d}">
       <div class="sched-day-header">
         <span class="sched-day-label"><i class="fas fa-calendar-day"></i> ${d} — ${weekDates[i].full}</span>
         ${i === todayIdx ? '<span class="sched-today-badge"><i class="fas fa-circle" style="font-size:6px;margin-right:4px;"></i>Today</span>' : ''}
       </div>
-      <div class="sched-grid">
-        ${schedByDay[d].length > 0 ? schedByDay[d].map((s: any) => `
-        <a href="${s.next_episode ? `/watch/${s.slug}-episode-${s.next_episode}` : `/anime/${s.slug}`}" class="sched-card">
-          <div class="sched-poster-wrap">
-            <img src="${s.cover_image || ''}" alt="${s.title}" class="sched-poster" loading="lazy"
-                 onerror="this.src='https://placehold.co/150x225/111120/8b5cf6?text=?'">
-            <div class="sched-poster-overlay">
-              <div class="sched-poster-play"><i class="fas fa-play"></i></div>
+      ${schedByDay[d].length > 0 ? `
+      <div class="scroll-row wide">
+        ${schedByDay[d].map((s: any) => `
+        <a href="${s.next_episode ? `/watch/${s.slug}-episode-${s.next_episode}` : `/anime/${s.slug}`}" class="acard">
+          <div class="acard-img">
+            <img src="${s.cover_image || ''}" alt="${s.title}" loading="lazy"
+                 onerror="this.src='https://placehold.co/150x220/111120/8b5cf6?text=?'">
+            <div class="acard-overlay">
+              <div class="acard-play"><i class="fas fa-play"></i></div>
             </div>
-            ${s.next_episode ? `<div class="sched-ep-badge">EP ${s.next_episode}</div>` : ''}
+            ${s.next_episode ? `<div class="acard-ep">EP ${s.next_episode}</div>` : ''}
+            <div class="acard-time-badge"><i class="fas fa-clock"></i> ${s.air_time || 'TBA'}</div>
+            <div class="acard-status"></div>
           </div>
-          <div class="sched-info">
-            <div class="sched-title">${s.title}</div>
-            <div class="sched-time"><i class="fas fa-clock"></i> ${s.air_time || 'TBA'}</div>
-            ${s.next_episode ? `<div class="sched-next-ep"><i class="fas fa-play-circle"></i> EP ${s.next_episode} upcoming</div>` : '<span class="sched-badge">Ongoing</span>'}
+          <div class="acard-body">
+            <div class="acard-name">${s.title}</div>
+            <div class="acard-meta">
+              ${s.next_episode ? `<span style="color:var(--accent2);font-weight:700;">EP ${s.next_episode} upcoming</span>` : '<span style="color:var(--green);">Ongoing</span>'}
+            </div>
           </div>
-        </a>`).join('') : `
-        <div class="sched-empty" style="grid-column:1/-1;">
-          <i class="fas fa-moon"></i>
-          <strong>No releases on ${d}</strong>
-          <span>Check back later</span>
-        </div>`}
-      </div>
+        </a>`).join('')}
+      </div>` : `
+      <div class="home-sched-empty">
+        <i class="fas fa-moon"></i>
+        <strong>No releases on ${d}</strong>
+        <span>Check back later</span>
+      </div>`}
     </div>`).join('')}
   </div>
 </section>
 <script>
-window.homeSwitchDay = function(day, btn) {
-  // Hide ALL day panels first
-  document.querySelectorAll('[id^="home-sched-"]').forEach(function(el) {
-    el.classList.remove('active');
-  });
-  // Remove active from ALL tabs
-  document.querySelectorAll('#homeSchedTabs .sched-tab').forEach(function(t) {
-    t.classList.remove('active');
-  });
-  // Show selected day panel
-  var panel = document.getElementById('home-sched-' + day);
-  if (panel) panel.classList.add('active');
-  // Activate clicked tab
-  if (btn) btn.classList.add('active');
-};
+(function() {
+  window.homeSwitchDay = function(day, btn) {
+    // Hide ALL day panels first
+    var panels = document.querySelectorAll('.home-sched-panel');
+    for (var i = 0; i < panels.length; i++) {
+      panels[i].classList.remove('active');
+    }
+    // Remove active from ALL tabs
+    var tabs = document.querySelectorAll('#homeSchedTabs .home-sched-tab');
+    for (var j = 0; j < tabs.length; j++) {
+      tabs[j].classList.remove('active');
+    }
+    // Show selected day panel
+    var panel = document.getElementById('home-sched-' + day);
+    if (panel) panel.classList.add('active');
+    // Activate clicked tab
+    if (btn) btn.classList.add('active');
+  };
+})();
 </script>`
 
   const content = `
@@ -277,8 +285,8 @@ ${popular.length > 0 ? `
       <div class="sec-title"><i class="fas fa-star" style="color:var(--gold);margin-right:6px;"></i> Popular Anime</div>
       <a href="/search" class="sec-more">View All <i class="fas fa-chevron-right"></i></a>
     </div>
-    <div class="grid-5">
-      ${popular.slice(0, 10).map(a => animeCard(a)).join('')}
+    <div class="scroll-row wide">
+      ${popular.map(a => animeCard(a)).join('')}
     </div>
   </div>
 </section>` : ''}
