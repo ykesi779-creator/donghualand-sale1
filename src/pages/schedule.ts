@@ -181,11 +181,9 @@ export function schedulePage(siteName: string = 'DonghuaLand'): string {
           </div>\`;
       } else {
         gridEl.innerHTML = items.map(item => {
-          const epHref = item.next_episode
-            ? \`/watch/\${item.slug}-episode-\${item.next_episode}\`
-            : \`/anime/\${item.slug}\`;
+          const animeHref = \`/anime/\${item.slug}\`;
           return \`
-          <a href="\${epHref}" class="sched-card">
+          <a href="\${animeHref}" class="sched-card">
             <div class="sched-poster-wrap">
               <img src="\${item.cover_image || ''}" alt="\${item.title}" class="sched-poster"
                    onerror="this.src='https://placehold.co/150x225/0f0f17/6c5ce7?text=?'" loading="lazy">
@@ -227,7 +225,7 @@ export function schedulePage(siteName: string = 'DonghuaLand'): string {
           futureEl.innerHTML = '<div class="future-empty"><i class="fas fa-satellite-dish" style="margin-right:8px;color:var(--text4);"></i> No upcoming episodes set yet</div>';
         } else {
           futureEl.innerHTML = '<div class="future-list">' + upcoming.map(item => \`
-            <a href="/watch/\${item.slug}-episode-\${item.next_episode}" class="future-item">
+            <a href="/anime/\${item.slug}" class="future-item">
               <img src="\${item.cover_image || ''}" alt="\${item.title}" class="future-item-poster"
                    onerror="this.src='https://placehold.co/42x60/111120/8b5cf6?text=?'" loading="lazy">
               <div class="future-item-info">
