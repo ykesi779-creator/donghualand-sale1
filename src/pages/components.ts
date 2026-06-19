@@ -107,3 +107,35 @@ export function recentItem(a: any): string {
   </div>
 </a>`
 }
+
+// Recently Updated card — uses same anime-card style as Ongoing section but with EP badge highlighted
+export function recentEpCard(a: any): string {
+  const img = a.cover_image || 'https://placehold.co/150x220/111120/8b5cf6?text=No+Image'
+  const ep = a.latest_ep || a.total_eps || ''
+  const rating = parseFloat(a.rating)
+  const href = ep ? `/watch/${a.slug}-episode-${ep}` : `/anime/${a.slug}`
+  const genres = genresFromJson(a.genres)
+  const barClass = (a.status || '').toLowerCase() === 'completed' ? 'done' : ''
+  return `
+<a href="${href}" class="acard">
+  <div class="acard-img">
+    <img src="${img}" alt="${a.title}" loading="lazy" onerror="this.src='https://placehold.co/150x220/111120/8b5cf6?text=?'">
+    <div class="acard-overlay">
+      <div class="acard-play"><i class="fas fa-play"></i></div>
+    </div>
+    ${a.type ? `<div class="acard-type">${a.type}</div>` : ''}
+    ${ep ? `<div class="acard-ep acard-ep-new">EP ${ep}</div>` : ''}
+    ${!isNaN(rating) ? `<div class="acard-score"><i class="fas fa-star" style="color:var(--gold);font-size:8px;"></i>${rating.toFixed(1)}</div>` : ''}
+    <div class="acard-status ${barClass}"></div>
+    <div class="acard-new-badge"><i class="fas fa-bolt"></i> NEW</div>
+  </div>
+  <div class="acard-body">
+    <div class="acard-name">${a.title}</div>
+    <div class="acard-meta">
+      <span>${a.release_year || ''}</span>
+      ${a.release_year && genres.length ? '<span class="acard-meta-dot"></span>' : ''}
+      <span>${genres.slice(0, 1).join('')}</span>
+    </div>
+  </div>
+</a>`
+}

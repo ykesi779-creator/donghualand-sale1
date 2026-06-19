@@ -783,7 +783,7 @@ export function adminPanelPage(section: string = 'dashboard') {
           </div>
           <div class="admin-fg">
             <label class="admin-lbl">Day of Week <span style="color:var(--red);">*</span></label>
-            <select class="admin-sel" id="schedDay" style="width:100%;">
+            <select class="admin-sel" id="schedDay" style="width:100%;" onchange="syncDateToDay()">
               <option value="Monday">Monday</option>
               <option value="Tuesday">Tuesday</option>
               <option value="Wednesday">Wednesday</option>
@@ -798,8 +798,18 @@ export function adminPanelPage(section: string = 'dashboard') {
             <input type="time" class="admin-inp" id="schedTime" placeholder="e.g. 20:00">
           </div>
           <div class="admin-fg">
-            <label class="admin-lbl">Next Episode Number</label>
+            <label class="admin-lbl">Next Episode Air Date <span style="color:var(--text3);font-weight:400;text-transform:none;">(specific date)</span></label>
+            <input type="date" class="admin-inp" id="schedAirDate" onchange="syncDayToDate()">
+            <div style="font-size:10px;color:var(--text4);margin-top:4px;"><i class="fas fa-info-circle"></i> When set, schedule card will show this exact date and auto-highlight on that day</div>
+          </div>
+          <div class="admin-fg">
+            <label class="admin-lbl">Next Episode Number <span style="color:var(--text3);font-weight:400;text-transform:none;">(shows on card)</span></label>
             <input type="number" class="admin-inp" id="schedNextEp" placeholder="e.g. 13" min="1">
+            <div style="font-size:10px;color:var(--text4);margin-top:4px;"><i class="fas fa-play-circle"></i> Episode badge displayed on schedule card</div>
+          </div>
+          <div class="admin-fg">
+            <label class="admin-lbl">Next Episode Title <span style="color:var(--text3);font-weight:400;text-transform:none;">(optional)</span></label>
+            <input type="text" class="admin-inp" id="schedNextEpTitle" placeholder="e.g. The Final Battle">
           </div>
           <div class="admin-fg full">
             <label class="admin-lbl">Notes / Season Info <span style="color:var(--text3);font-weight:400;text-transform:none;">(optional)</span></label>
@@ -837,6 +847,7 @@ export function adminPanelPage(section: string = 'dashboard') {
               <tr>
                 <th>Anime</th>
                 <th>Day</th>
+                <th>Air Date</th>
                 <th>Air Time</th>
                 <th>Next EP</th>
                 <th>Notes</th>
@@ -844,7 +855,7 @@ export function adminPanelPage(section: string = 'dashboard') {
               </tr>
             </thead>
             <tbody id="schedBody">
-              <tr><td colspan="6" style="text-align:center;padding:28px;color:var(--text3);">
+              <tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text3);">
                 <i class="fas fa-spinner fa-spin"></i> Loading schedule...
               </td></tr>
             </tbody>

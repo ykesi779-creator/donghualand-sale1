@@ -1,5 +1,5 @@
 import { layout } from './layout'
-import { animeCard, genresFromJson, formatRating, recentItem } from './components'
+import { animeCard, genresFromJson, formatRating, recentEpCard } from './components'
 
 export function homePage(data: {
   featured: any[]
@@ -132,13 +132,30 @@ export function homePage(data: {
 </section>`
 
   // ──────────────────────────────────────────────────────────────────────
-  // SCHEDULE SECTION — DonghuaNation style, placed right after hero
+  // SCHEDULE SECTION — Date-aware, hides/shows by exact day tab click
   // ──────────────────────────────────────────────────────────────────────
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const schedByDay: Record<string, any[]> = {}
   days.forEach(d => { schedByDay[d] = [] })
   schedule.forEach(s => { if (schedByDay[s.day_of_week]) schedByDay[s.day_of_week].push(s) })
-  const todayIdx = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1
+
+  // JS getDay(): 0=Sun,1=Mon...6=Sat → our index: Mon=0...Sun=6
+  const todayJS = new Date().getDay()
+  const todayIdx = todayJS === 0 ? 6 : todayJS - 1
+  const todayName = days[todayIdx]
+
+  // Generate the actual calendar date for each day of the current week
+  const now = new Date()
+  const weekDates: { date: number; month: string; full: string }[] = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now)
+    d.setDate(now.getDate() + (i - todayIdx))
+    weekDates.push({
+      date: d.getDate(),
+      month: d.toLocaleDateString('en-US', { month: 'short' }),
+      full: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    })
+  }
 
   // Sort each day by air_time
   days.forEach(d => {
@@ -161,49 +178,64 @@ export function homePage(data: {
       New episodes available approximately 20–60 minutes after official broadcast time.
     </p>
 
-    <!-- Day tabs — DonghuaNation top-bar style -->
-    <div class="sched-tabs" id="homeSchedTabs">
+    <!-- Day tabs with dates -->
+    <div class="sched-tabs sched-tabs-dated" id="homeSchedTabs">
       ${days.map((d, i) => `
-      <button class="sched-tab${i === todayIdx ? ' active' : ''}" data-day="${d}" onclick="switchDay('${d}', this)">
-        ${d.slice(0, 3)}
+      <button class="sched-tab sched-tab-dated${i === todayIdx ? ' active' : ''}" data-day="${d}" onclick="homeSwitchDay('${d}', this)">
+        <span class="stab-day">${d.slice(0, 3)}</span>
+        <span class="stab-date">${weekDates[i].date}</span>
         ${i === todayIdx ? '<span class="today-dot"></span>' : ''}
       </button>`).join('')}
     </div>
 
-    <!-- Day content grids -->
+    <!-- Day content panels — only active one is visible -->
     ${days.map((d, i) => `
     <div class="sched-day${i === todayIdx ? ' active' : ''}" id="home-sched-${d}">
+      <div class="sched-day-header">
+        <span class="sched-day-label"><i class="fas fa-calendar-day"></i> ${d} — ${weekDates[i].full}</span>
+        ${i === todayIdx ? '<span class="sched-today-badge"><i class="fas fa-circle" style="font-size:6px;margin-right:4px;"></i>Today</span>' : ''}
+      </div>
       <div class="sched-grid">
         ${schedByDay[d].length > 0 ? schedByDay[d].map((s: any) => `
-        <a href="/anime/${s.slug}" class="sched-card">
+        <a href="${s.next_episode ? `/watch/${s.slug}-episode-${s.next_episode}` : `/anime/${s.slug}`}" class="sched-card">
           <div class="sched-poster-wrap">
             <img src="${s.cover_image || ''}" alt="${s.title}" class="sched-poster" loading="lazy"
                  onerror="this.src='https://placehold.co/150x225/111120/8b5cf6?text=?'">
             <div class="sched-poster-overlay">
               <div class="sched-poster-play"><i class="fas fa-play"></i></div>
             </div>
+            ${s.next_episode ? `<div class="sched-ep-badge">EP ${s.next_episode}</div>` : ''}
           </div>
           <div class="sched-info">
             <div class="sched-title">${s.title}</div>
             <div class="sched-time"><i class="fas fa-clock"></i> ${s.air_time || 'TBA'}</div>
-            <span class="sched-badge">Ongoing</span>
+            ${s.next_episode ? `<div class="sched-next-ep"><i class="fas fa-play-circle"></i> EP ${s.next_episode} upcoming</div>` : '<span class="sched-badge">Ongoing</span>'}
           </div>
         </a>`).join('') : `
         <div class="sched-empty" style="grid-column:1/-1;">
           <i class="fas fa-moon"></i>
-          <strong>No releases today</strong>
+          <strong>No releases on ${d}</strong>
+          <span>Check back later</span>
         </div>`}
       </div>
     </div>`).join('')}
   </div>
 </section>
 <script>
-window.switchDay = function(day, btn) {
-  document.querySelectorAll('#homeSchedTabs .sched-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('[id^="home-sched-"]').forEach(d => d.classList.remove('active'));
-  btn.classList.add('active');
-  var el = document.getElementById('home-sched-' + day);
-  if (el) el.classList.add('active');
+window.homeSwitchDay = function(day, btn) {
+  // Hide ALL day panels first
+  document.querySelectorAll('[id^="home-sched-"]').forEach(function(el) {
+    el.classList.remove('active');
+  });
+  // Remove active from ALL tabs
+  document.querySelectorAll('#homeSchedTabs .sched-tab').forEach(function(t) {
+    t.classList.remove('active');
+  });
+  // Show selected day panel
+  var panel = document.getElementById('home-sched-' + day);
+  if (panel) panel.classList.add('active');
+  // Activate clicked tab
+  if (btn) btn.classList.add('active');
 };
 </script>`
 
@@ -232,8 +264,8 @@ ${recent.length > 0 ? `
       <div class="sec-title"><i class="fas fa-clock" style="color:var(--accent2);margin-right:6px;"></i> Recently Updated</div>
       <a href="/search" class="sec-more">View All <i class="fas fa-chevron-right"></i></a>
     </div>
-    <div class="recent-grid">
-      ${recent.slice(0, 10).map(a => recentItem(a)).join('')}
+    <div class="scroll-row wide">
+      ${recent.slice(0, 12).map(a => recentEpCard(a)).join('')}
     </div>
   </div>
 </section>` : ''}

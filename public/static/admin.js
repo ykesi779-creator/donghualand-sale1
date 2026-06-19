@@ -691,14 +691,14 @@ async function loadSchedulePage() {
 async function loadScheduleTable() {
   const tbody = document.getElementById('schedBody');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3);"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text3);"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
   try {
     const res = await fetch('/api/admin/schedule', { headers: headers() });
     const d = await res.json();
     allSchedData = d.data || [];
     renderScheduleTable();
   } catch(e) {
-    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--red);padding:20px;text-align:center;">Error: ' + escHtml(e.message) + '</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="color:var(--red);padding:20px;text-align:center;">Error: ' + escHtml(e.message) + '</td></tr>';
   }
 }
 
@@ -713,15 +713,20 @@ function renderScheduleTable() {
     const msg = schedDayFilter === 'all'
       ? 'No schedule entries yet. Add anime above.'
       : 'No entries for ' + schedDayFilter + '.';
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text3);">' +
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3);">' +
       '<i class="fas fa-calendar-times" style="font-size:24px;display:block;margin-bottom:10px;color:var(--text4);"></i>' +
       msg + '</td></tr>';
     return;
   }
 
-  // Sort by day order then air_time
+  // Sort by air_date first (if set), then by day order, then air_time
   const dayOrder = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
   filtered.sort((a, b) => {
+    // If both have air_date, sort by date
+    if (a.air_date && b.air_date) return a.air_date.localeCompare(b.air_date);
+    if (a.air_date) return -1;
+    if (b.air_date) return 1;
+    // Otherwise sort by day order
     const da = dayOrder.indexOf(a.day_of_week);
     const db = dayOrder.indexOf(b.day_of_week);
     if (da !== db) return da - db;
@@ -730,25 +735,48 @@ function renderScheduleTable() {
     return a.air_time.localeCompare(b.air_time);
   });
 
+  // Format date helper
+  function fmtDate(iso) {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso + 'T00:00:00');
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch(e) { return iso; }
+  }
+
+  // Check if a date is past
+  function isPast(iso) {
+    if (!iso) return false;
+    const d = new Date(iso + 'T23:59:59');
+    return d < new Date();
+  }
+
   tbody.innerHTML = filtered.map(s => `
-    <tr>
+    <tr${isPast(s.air_date) ? ' style="opacity:0.55;"' : ''}>
       <td>
         <div class="anime-cell-wrap">
           <img src="${s.cover_image || ''}" class="cell-poster" onerror="this.style.display='none'" alt="">
           <div>
             <div class="cell-name">${escHtml(s.title || '')}</div>
-            <div class="cell-native" style="font-size:10px;color:var(--purple3);">ID: ${s.anime_id}</div>
+            <div class="cell-native" style="font-size:10px;color:var(--purple3);">${s.title_native ? escHtml(s.title_native) : 'ID: ' + s.anime_id}</div>
           </div>
         </div>
       </td>
       <td>
         <span class="badge badge-purple" style="font-size:9px;">${s.day_of_week}</span>
       </td>
+      <td style="font-size:12px;">
+        ${s.air_date
+          ? `<span style="color:${isPast(s.air_date) ? 'var(--text4)' : 'var(--accent2)'};font-weight:700;">${fmtDate(s.air_date)}</span>${isPast(s.air_date) ? ' <span style="font-size:9px;color:var(--text4);">(past)</span>' : ''}`
+          : '<span style="color:var(--text4);">—</span>'}
+      </td>
       <td style="color:var(--text2);font-weight:600;font-size:13px;">
         ${s.air_time ? '<i class="fas fa-clock" style="color:var(--purple3);margin-right:5px;font-size:10px;"></i>' + s.air_time : '<span style="color:var(--text4);">—</span>'}
       </td>
-      <td style="color:var(--text3);font-size:12px;">
-        ${s.next_episode ? 'EP ' + s.next_episode : '<span style="color:var(--text4);">—</span>'}
+      <td style="font-size:12px;">
+        ${s.next_episode
+          ? `<span style="background:linear-gradient(135deg,var(--purple),#4f46e5);color:#fff;padding:2px 8px;border-radius:4px;font-weight:800;font-size:10px;">EP ${s.next_episode}</span>${s.next_ep_title ? '<div style="color:var(--text3);font-size:10px;margin-top:3px;">' + escHtml(s.next_ep_title) + '</div>' : ''}`
+          : '<span style="color:var(--text4);">—</span>'}
       </td>
       <td style="color:var(--text3);font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
         ${s.notes ? escHtml(s.notes) : '<span style="color:var(--text4);">—</span>'}
@@ -773,13 +801,44 @@ window.filterSchedByDay = function(day, btn) {
   renderScheduleTable();
 };
 
+// Sync day-of-week dropdown when air_date changes
+window.syncDayToDate = function() {
+  const dateVal = getVal('schedAirDate');
+  if (!dateVal) return;
+  const d = new Date(dateVal + 'T00:00:00');
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const dayName = dayNames[d.getDay()];
+  setVal('schedDay', dayName);
+};
+
+// Sync air_date to current week's date when day changes (optional helper)
+window.syncDateToDay = function() {
+  // Only auto-fill if air_date is empty
+  const existing = getVal('schedAirDate');
+  if (existing) return;
+  const day = getVal('schedDay');
+  const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const today = new Date();
+  const todayIdx = today.getDay();
+  const targetIdx = dayNames.indexOf(day);
+  if (targetIdx < 0) return;
+  let diff = targetIdx - todayIdx;
+  if (diff < 0) diff += 7;
+  const target = new Date(today);
+  target.setDate(today.getDate() + diff);
+  const iso = target.toISOString().split('T')[0];
+  setVal('schedAirDate', iso);
+};
+
 window.editScheduleEntry = function(id) {
   const entry = allSchedData.find(s => s.id === id);
   if (!entry) return;
   setVal('schedAnime', entry.anime_id);
   setVal('schedDay', entry.day_of_week);
   setVal('schedTime', entry.air_time || '');
+  setVal('schedAirDate', entry.air_date || '');
   setVal('schedNextEp', entry.next_episode || '');
+  setVal('schedNextEpTitle', entry.next_ep_title || '');
   setVal('schedNotes', entry.notes || '');
   setVal('schedEditId', id);
   const titleEl = document.getElementById('schedFormTitle');
@@ -795,7 +854,9 @@ window.resetSchedForm = function() {
   setVal('schedAnime', '');
   setVal('schedDay', 'Monday');
   setVal('schedTime', '');
+  setVal('schedAirDate', '');
   setVal('schedNextEp', '');
+  setVal('schedNextEpTitle', '');
   setVal('schedNotes', '');
   setVal('schedEditId', '');
   const titleEl = document.getElementById('schedFormTitle');
@@ -814,7 +875,9 @@ window.saveSchedule = async function() {
     anime_id: animeId,
     day_of_week: day,
     air_time: getVal('schedTime') || null,
+    air_date: getVal('schedAirDate') || null,
     next_episode: getVal('schedNextEp') ? parseInt(getVal('schedNextEp')) : null,
+    next_ep_title: getVal('schedNextEpTitle') || null,
     notes: getVal('schedNotes') || null
   };
 
