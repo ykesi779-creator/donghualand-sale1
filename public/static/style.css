@@ -2574,42 +2574,94 @@ section.hero-slider + section.hero-slider { display: none !important; }
 /* ================================================================
    HOME SCHEDULE SECTION — special overrides
 ================================================================ */
-.home-schedule-section .sched-tabs {
-  position: static;
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin-bottom: 18px;
+
+/* Day tab strip */
+.home-sched-tabs {
+  display: flex;
   gap: 7px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  margin-bottom: 16px;
+  padding-bottom: 2px;
 }
-.home-schedule-section .sched-tab {
+.home-sched-tabs::-webkit-scrollbar { height: 0; }
+
+.home-sched-tab {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   padding: 8px 14px;
   border-radius: var(--r10);
   border: 1px solid var(--border2);
-  border-bottom: 1px solid var(--border2);
-  margin-bottom: 0;
+  background: var(--bg3);
+  color: var(--text3);
   font-size: 12px;
-  flex-direction: column;
-  gap: 2px;
-  align-items: center;
-  min-width: 48px;
+  cursor: pointer;
+  transition: var(--trans);
+  min-width: 52px;
+  position: relative;
 }
-.home-schedule-section .sched-tab .stab-day { font-size: 11px; }
-.home-schedule-section .sched-tab .stab-date { font-size: 14px; font-weight: 900; }
-.home-schedule-section .sched-tab.active {
+.home-sched-tab:hover { border-color: var(--purple); color: var(--text1); }
+.home-sched-tab.active {
   background: linear-gradient(135deg, var(--purple) 0%, #4f46e5 100%);
   border-color: var(--purple);
-  border-bottom-color: var(--purple);
   color: #fff;
   box-shadow: 0 3px 14px var(--purple-glow2);
 }
-.home-schedule-section .sched-day.active { display: block; }
-.home-schedule-section .sched-grid {
-  grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
-  padding: 0;
+.hstab-day { font-size: 11px; font-weight: 700; }
+.hstab-date { font-size: 15px; font-weight: 900; line-height: 1; }
+.hstab-today-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  position: absolute; top: 5px; right: 5px;
+  animation: pulse-dot 2s infinite;
 }
+
+/* Day content panel */
+.home-sched-panel { display: none; }
+.home-sched-panel.active { display: block; }
+
+.home-sched-panel .sched-day-header {
+  padding: 8px 0 6px;
+  margin-bottom: 10px;
+}
+
+/* Inline time badge on acard for schedule */
+.acard-time-badge {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  background: rgba(8,8,16,0.85);
+  backdrop-filter: blur(4px);
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--accent2);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.acard-time-badge i { font-size: 8px; }
+
+/* Empty state for home schedule */
+.home-sched-empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text3);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.home-sched-empty i { font-size: 36px; color: var(--text4); }
+.home-sched-empty strong { color: var(--text2); font-size: 15px; }
+
+/* Keep the old sched-tabs styles for non-home schedule pages */
+.home-schedule-section .sched-day.active { display: block; }
 .home-schedule-section .sched-day-header {
   padding: 8px 0 6px;
   margin-bottom: 10px;
