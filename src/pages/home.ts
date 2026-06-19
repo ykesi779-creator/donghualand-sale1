@@ -8,10 +8,13 @@ export function homePage(data: {
   popular: any[]
   ongoing: any[]
   schedule: any[]
+  movies?: any[]
+  completed?: any[]
+  upcoming?: any[]
   siteName?: string
   siteUrl?: string
 }) {
-  const { featured, trending, recent, popular, ongoing, schedule, siteName = 'ANIME WORLD', siteUrl = '' } = data
+  const { featured, trending, recent, popular, ongoing, schedule, movies = [], completed = [], upcoming = [], siteName = 'ANIME WORLD', siteUrl = '' } = data
 
   // Hero slider - use featured array (up to 5)
   const heroItems = featured.length > 0 ? featured.slice(0, 5) : []
@@ -198,12 +201,12 @@ export function homePage(data: {
       ${schedByDay[d].length > 0 ? `
       <div class="scroll-row wide">
         ${schedByDay[d].map((s: any) => `
-        <a href="${s.next_episode ? `/watch/${s.slug}-episode-${s.next_episode}` : `/anime/${s.slug}`}" class="acard">
+        <a href="/anime/${s.slug}" class="acard">
           <div class="acard-img">
             <img src="${s.cover_image || ''}" alt="${s.title}" loading="lazy"
                  onerror="this.src='https://placehold.co/150x220/111120/8b5cf6?text=?'">
             <div class="acard-overlay">
-              <div class="acard-play"><i class="fas fa-play"></i></div>
+              <div class="acard-play"><i class="fas fa-info-circle"></i></div>
             </div>
             ${s.next_episode ? `<div class="acard-ep">EP ${s.next_episode}</div>` : ''}
             <div class="acard-time-badge"><i class="fas fa-clock"></i> ${s.air_time || 'TBA'}</div>
@@ -247,13 +250,37 @@ export function homePage(data: {
 })();
 </script>`
 
+  // ── Trending ranked list card (matches reference screenshot design) ──
+  function trendingRankCard(a: any, rank: number): string {
+    const genres = genresFromJson(a.genres)
+    const rating = parseFloat(a.rating)
+    const img = a.cover_image || 'https://placehold.co/100x150/111120/8b5cf6?text=?'
+    // Rank number gradient class
+    const rankClass = rank <= 3 ? 'tr-rank-top' : rank <= 5 ? 'tr-rank-mid' : 'tr-rank-low'
+    return `
+<a href="/anime/${a.slug}" class="tr-card">
+  <div class="tr-rank ${rankClass}">${rank}</div>
+  <div class="tr-poster">
+    <img src="${img}" alt="${a.title}" loading="lazy"
+         onerror="this.src='https://placehold.co/100x150/111120/8b5cf6?text=?'">
+  </div>
+  <div class="tr-info">
+    <div class="tr-title">${a.title}</div>
+    <div class="tr-meta">
+      <span class="tr-genre">${genres.slice(0, 1).join('') || a.type || 'Action'}</span>
+      ${!isNaN(rating) ? `<span class="tr-sep">·</span><span class="tr-rating"><i class="fas fa-star" style="color:var(--gold);font-size:10px;"></i> ${rating.toFixed(1)}</span>` : ''}
+    </div>
+  </div>
+</a>`
+  }
+
   const content = `
 ${heroSlider}
 
 ${scheduleSection}
 
 ${ongoing.length > 0 ? `
-<section class="section">
+<section class="section home-section-ongoing">
   <div class="container">
     <div class="sec-head">
       <div class="sec-title"><i class="fas fa-fire" style="color:#f59e0b;margin-right:6px;"></i> Ongoing Anime</div>
@@ -266,7 +293,7 @@ ${ongoing.length > 0 ? `
 </section>` : ''}
 
 ${recent.length > 0 ? `
-<section class="section section-alt">
+<section class="section section-alt home-section-recent">
   <div class="container">
     <div class="sec-head">
       <div class="sec-title"><i class="fas fa-clock" style="color:var(--accent2);margin-right:6px;"></i> Recently Updated</div>
@@ -278,28 +305,54 @@ ${recent.length > 0 ? `
   </div>
 </section>` : ''}
 
-${popular.length > 0 ? `
-<section class="section">
+${movies.length > 0 ? `
+<section class="section home-section-movies">
   <div class="container">
     <div class="sec-head">
-      <div class="sec-title"><i class="fas fa-star" style="color:var(--gold);margin-right:6px;"></i> Popular Anime</div>
-      <a href="/search" class="sec-more">View All <i class="fas fa-chevron-right"></i></a>
+      <div class="sec-title"><i class="fas fa-film" style="color:#a78bfa;margin-right:6px;"></i> Movies</div>
+      <a href="/search?type=Movie" class="sec-more">View All <i class="fas fa-chevron-right"></i></a>
     </div>
     <div class="scroll-row wide">
-      ${popular.map(a => animeCard(a)).join('')}
+      ${movies.map(a => animeCard(a)).join('')}
+    </div>
+  </div>
+</section>` : ''}
+
+${completed.length > 0 ? `
+<section class="section section-alt home-section-completed">
+  <div class="container">
+    <div class="sec-head">
+      <div class="sec-title"><i class="fas fa-check-circle" style="color:var(--blue);margin-right:6px;"></i> Completed</div>
+      <a href="/search?status=Completed" class="sec-more">View All <i class="fas fa-chevron-right"></i></a>
+    </div>
+    <div class="scroll-row wide">
+      ${completed.map(a => animeCard(a)).join('')}
+    </div>
+  </div>
+</section>` : ''}
+
+${upcoming.length > 0 ? `
+<section class="section home-section-upcoming">
+  <div class="container">
+    <div class="sec-head">
+      <div class="sec-title"><i class="fas fa-rocket" style="color:var(--pink);margin-right:6px;"></i> Upcoming</div>
+      <a href="/search?status=Upcoming" class="sec-more">View All <i class="fas fa-chevron-right"></i></a>
+    </div>
+    <div class="scroll-row wide">
+      ${upcoming.map(a => animeCard(a)).join('')}
     </div>
   </div>
 </section>` : ''}
 
 ${trending.length > 0 ? `
-<section class="section section-alt">
+<section class="section section-alt home-section-trending">
   <div class="container">
     <div class="sec-head">
-      <div class="sec-title"><i class="fas fa-chart-line" style="color:var(--pink);margin-right:6px;"></i> Trending Now</div>
+      <div class="sec-title"><i class="fas fa-chart-line" style="color:var(--pink);margin-right:6px;"></i> Trending Anime</div>
       <a href="/search" class="sec-more">View All <i class="fas fa-chevron-right"></i></a>
     </div>
-    <div class="scroll-row">
-      ${trending.map(a => animeCard(a)).join('')}
+    <div class="trending-ranked-list">
+      ${trending.slice(0, 10).map((a, i) => trendingRankCard(a, i + 1)).join('')}
     </div>
   </div>
 </section>` : ''}
