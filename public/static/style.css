@@ -144,6 +144,18 @@ ul, ol { list-style: none; }
 }
 .logo-text { color: var(--text1); display: block; font-size: 18px; font-weight: 900; letter-spacing: -0.5px; }
 .logo-text .accent { color: var(--purple3); }
+.site-logo-img {
+  height: 40px;
+  width: auto;
+  max-width: 180px;
+  object-fit: contain;
+  display: block;
+}
+.footer-logo-img {
+  height: 36px;
+  max-width: 160px;
+  margin-bottom: 0;
+}
 
 /* ---- Header Search ---- */
 .header-search {

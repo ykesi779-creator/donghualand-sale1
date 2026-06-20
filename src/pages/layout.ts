@@ -31,18 +31,22 @@ ${siteUrl ? `<meta property="og:url" content="${siteUrl}">` : ''}
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="${siteName}">
-<!-- Apple Touch Icons (all required sizes) -->
+<!-- Apple Touch Icons -->
 <link rel="apple-touch-icon" href="/static/icon-180x180.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/static/icon-180x180.png">
 <link rel="apple-touch-icon" sizes="167x167" href="/static/icon-167x167.png">
 <link rel="apple-touch-icon" sizes="152x152" href="/static/icon-152x152.png">
 <link rel="apple-touch-icon" sizes="144x144" href="/static/icon-144x144.png">
 <link rel="apple-touch-icon" sizes="128x128" href="/static/icon-128x128.png">
 <link rel="apple-touch-icon" sizes="96x96"   href="/static/icon-96x96.png">
 <!-- Favicons -->
-<link rel="icon" type="image/png" sizes="32x32" href="/static/icon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/static/icon-16x16.png">
-<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
-<link rel="shortcut icon" href="/static/favicon.ico">
+<link rel="icon" type="image/png" sizes="512x512" href="/static/icon-512x512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32"   href="/static/icon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16"   href="/static/icon-16x16.png">
+<link rel="icon" type="image/svg+xml"             href="/static/favicon.svg">
+<link rel="icon" type="image/x-icon"              href="/static/favicon.ico">
+<link rel="shortcut icon"                          href="/static/favicon.ico">
 <!-- PWA Manifest -->
 <link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,8 +64,7 @@ ${extraHead}
 
     <!-- Logo -->
     <a href="/" class="logo">
-      <div class="logo-icon"><i class="fas fa-dragon"></i></div>
-      <div class="logo-text" id="headerSiteName">${siteName}</div>
+      <img src="/static/logo.png" alt="${siteName}" class="site-logo-img" id="headerSiteName">
     </a>
 
     <!-- Search bar (desktop: hidden until search icon clicked) -->
@@ -201,8 +204,7 @@ ${content}
     <div class="footer-top">
       <div class="footer-brand">
         <a href="/" class="footer-logo">
-          <div class="fli"><i class="fas fa-dragon"></i></div>
-          <span id="footerSiteName">${siteName}</span>
+          <img src="/static/logo.png" alt="${siteName}" class="site-logo-img footer-logo-img" id="footerSiteName">
         </a>
         <p class="footer-tagline" id="footerTagline">Your ultimate destination for anime streaming.<br>Free, HD, updated daily.</p>
         <div class="footer-social" id="footerSocial">
@@ -291,7 +293,7 @@ ${content}
   <div class="pwa-modal-sheet">
     <div class="pwa-modal-handle"></div>
     <div class="pwa-modal-content">
-      <img src="/static/icon-192x192.png" alt="${siteName} icon" class="pwa-modal-icon">
+      <img src="/static/icon.png" alt="${siteName} icon" class="pwa-modal-icon">
       <div class="pwa-modal-text">
         <h2 class="pwa-modal-title" id="pwaModalTitle">${siteName}</h2>
         <p class="pwa-modal-desc">Install the app for the best experience — watch offline, faster loading, and no browser bar.</p>

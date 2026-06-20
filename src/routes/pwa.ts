@@ -53,6 +53,9 @@ pwa.get('/manifest.json', async (c) => {
     lang: 'en',
     categories: ['entertainment', 'video'],
     icons: [
+      { src: '/static/icon-16x16.png',   sizes: '16x16',   type: 'image/png', purpose: 'any' },
+      { src: '/static/icon-32x32.png',   sizes: '32x32',   type: 'image/png', purpose: 'any' },
+      { src: '/static/icon-48x48.png',   sizes: '48x48',   type: 'image/png', purpose: 'any' },
       { src: '/static/icon-72x72.png',   sizes: '72x72',   type: 'image/png', purpose: 'any' },
       { src: '/static/icon-96x96.png',   sizes: '96x96',   type: 'image/png', purpose: 'any' },
       { src: '/static/icon-128x128.png', sizes: '128x128', type: 'image/png', purpose: 'any' },
@@ -63,6 +66,7 @@ pwa.get('/manifest.json', async (c) => {
       { src: '/static/icon-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
       { src: '/static/icon-384x384.png', sizes: '384x384', type: 'image/png', purpose: 'any' },
       { src: '/static/icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+      { src: '/static/favicon.svg',      sizes: 'any',     type: 'image/svg+xml', purpose: 'any maskable' },
     ],
     screenshots: [],
     shortcuts: [
@@ -107,9 +111,8 @@ const STATIC_ASSETS = [
   '/',
   '/static/style.css',
   '/static/app.js',
-  '/static/favicon.png',
-  '/static/icon-192x192.png',
-  '/static/icon-512x512.png',
+  '/static/icon.png',
+  '/static/logo.png',
   '/manifest.json',
 ];
 
