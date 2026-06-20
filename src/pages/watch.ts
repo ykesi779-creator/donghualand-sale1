@@ -40,6 +40,10 @@ export function watchPage(data: { anime: any, episode: any, allEpisodes: any[], 
   // Sort episodes descending (newest first)
   const sortedEpisodes = [...allEpisodes].sort((a, b) => b.episode_number - a.episode_number)
 
+  // Prev/Next hrefs
+  const prevHref = prevEp ? `/watch/${anime.slug}-episode-${prevEp.episode_number}` : ''
+  const nextHref = nextEp ? `/watch/${anime.slug}-episode-${nextEp.episode_number}` : ''
+
   const content = `
 ${breadcrumb([
   { label: 'Browse', href: '/search' },
@@ -59,37 +63,72 @@ ${breadcrumb([
       </div>
     </div>
 
-    <!-- Action Buttons Row (Watchlist, Report, Share) -->
-    <div class="watch-action-row">
-      <button class="watch-action-btn" id="wlBtn" data-slug="${anime.slug}" onclick="addToWatchlist()">
-        <i class="fas fa-bookmark"></i> Watchlist
-      </button>
-      <button class="watch-action-btn" onclick="reportIssue()">
-        <i class="fas fa-flag"></i> Report
-      </button>
-      <button class="watch-action-btn" onclick="shareLink()">
-        <i class="fas fa-share-alt"></i> Share
-      </button>
-    </div>
+    <!-- ====== BELOW-PLAYER ACTION ROW ====== -->
+    <!-- Layout: [Prev] | [Watchlist] [Share] | [Next] -->
+    <div class="watch-below-player-row">
+
+      <!-- Left: Prev -->
+      <div class="wbp-side wbp-left">
+        ${prevEp
+          ? `<a href="${prevHref}" class="wbp-nav-btn wbp-prev">
+               <i class="fas fa-chevron-left"></i>
+               <span class="wbp-nav-label">Prev</span>
+             </a>`
+          : `<button class="wbp-nav-btn wbp-prev disabled" disabled>
+               <i class="fas fa-chevron-left"></i>
+               <span class="wbp-nav-label">Prev</span>
+             </button>`
+        }
+      </div>
+
+      <!-- Middle: Watchlist + Share -->
+      <div class="wbp-middle">
+        <button class="wbp-action-btn wbp-watchlist" id="wlBtn" data-slug="${anime.slug}" onclick="addToWatchlist()">
+          <i class="fas fa-bookmark"></i>
+          <span>Watchlist</span>
+        </button>
+        <button class="wbp-action-btn wbp-share" onclick="openSharePopup()">
+          <i class="fas fa-share-alt"></i>
+          <span>Share</span>
+        </button>
+      </div>
+
+      <!-- Right: Next -->
+      <div class="wbp-side wbp-right">
+        ${nextEp
+          ? `<a href="${nextHref}" class="wbp-nav-btn wbp-next">
+               <span class="wbp-nav-label">Next</span>
+               <i class="fas fa-chevron-right"></i>
+             </a>`
+          : `<button class="wbp-nav-btn wbp-next disabled" disabled>
+               <span class="wbp-nav-label">Next</span>
+               <i class="fas fa-chevron-right"></i>
+             </button>`
+        }
+      </div>
+
+    </div><!-- end .watch-below-player-row -->
+
+    <!-- Thin horizontal separator -->
+    <div class="watch-divider"></div>
 
     <!-- ====== TABBED SECTION: Episodes + Comments ====== -->
     <div class="watch-tabs-container">
 
-      <!-- Tab Headers -->
+      <!-- Tab Headers — Episodes | Comments | [Search input on right] -->
       <div class="watch-tabs-header">
-        <button class="watch-tab-btn active" id="tabEpisodes" onclick="switchWatchTab('episodes')">
-          <i class="fas fa-th-list"></i> Episodes
-          <span class="watch-tab-count">${allEpisodes.length}</span>
-        </button>
-        <button class="watch-tab-btn" id="tabComments" onclick="switchWatchTab('comments')">
-          <i class="fas fa-comments"></i> Comments
-          <span class="watch-tab-count" id="tabCommentsCount"></span>
-        </button>
-      </div>
-
-      <!-- Tab: Episodes -->
-      <div class="watch-tab-panel" id="panelEpisodes">
-        <div class="cr-ep-head-right" style="padding:10px 14px 0;">
+        <div class="watch-tabs-header-left">
+          <button class="watch-tab-btn active" id="tabEpisodes" onclick="switchWatchTab('episodes')">
+            <i class="fas fa-th-list"></i> Episodes
+            <span class="watch-tab-count">${allEpisodes.length}</span>
+          </button>
+          <button class="watch-tab-btn" id="tabComments" onclick="switchWatchTab('comments')">
+            <i class="fas fa-comments"></i> Comments
+            <span class="watch-tab-count" id="tabCommentsCount"></span>
+          </button>
+        </div>
+        <!-- Search episode input — shown always on right side of tab bar -->
+        <div class="watch-tabs-header-right">
           <div class="cr-ep-search-wrap">
             <i class="fas fa-search cr-ep-search-icon"></i>
             <input type="text" class="cr-ep-search" id="crEpSearch"
@@ -97,6 +136,10 @@ ${breadcrumb([
               oninput="filterCrEpisodes(this.value)">
           </div>
         </div>
+      </div>
+
+      <!-- Tab: Episodes -->
+      <div class="watch-tab-panel" id="panelEpisodes">
         <div class="cr-ep-list" id="crEpList">
           ${sortedEpisodes.map(ep => {
             const isActive = ep.episode_number === episode.episode_number
@@ -182,6 +225,56 @@ ${breadcrumb([
 
 </div><!-- end .watch-wrap -->
 
+<!-- ============================================================
+     SHARE POPUP MODAL
+============================================================ -->
+<div class="share-modal-backdrop" id="shareModal" onclick="closeShareOnBackdrop(event)">
+  <div class="share-modal-box">
+    <div class="share-modal-head">
+      <div class="share-modal-title"><i class="fas fa-share-alt"></i> Share Episode</div>
+      <button class="share-modal-close" onclick="closeSharePopup()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Copy Link -->
+    <div class="share-copy-row">
+      <input type="text" class="share-copy-input" id="shareLinkInput" readonly>
+      <button class="share-copy-btn" id="shareCopyBtn" onclick="copyShareLink()">
+        <i class="fas fa-copy"></i> Copy
+      </button>
+    </div>
+
+    <!-- Share Options -->
+    <div class="share-options-label">Share via</div>
+    <div class="share-options-grid">
+      <button class="share-opt-btn share-opt-twitter" onclick="shareToTwitter()">
+        <i class="fab fa-x-twitter"></i>
+        <span>X (Twitter)</span>
+      </button>
+      <button class="share-opt-btn share-opt-facebook" onclick="shareToFacebook()">
+        <i class="fab fa-facebook"></i>
+        <span>Facebook</span>
+      </button>
+      <button class="share-opt-btn share-opt-whatsapp" onclick="shareToWhatsApp()">
+        <i class="fab fa-whatsapp"></i>
+        <span>WhatsApp</span>
+      </button>
+      <button class="share-opt-btn share-opt-telegram" onclick="shareToTelegram()">
+        <i class="fab fa-telegram"></i>
+        <span>Telegram</span>
+      </button>
+      <button class="share-opt-btn share-opt-reddit" onclick="shareToReddit()">
+        <i class="fab fa-reddit"></i>
+        <span>Reddit</span>
+      </button>
+      <button class="share-opt-btn share-opt-native" onclick="nativeShare()" id="nativeShareBtn" style="display:none;">
+        <i class="fas fa-ellipsis-h"></i>
+        <span>More</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
 <script>
 // Save to watch history
 (function(){
@@ -214,12 +307,94 @@ function addToWatchlist() {
     window.showToast('Added to watchlist!', 'success');
   }
 }
-function reportIssue() { window.showToast('Issue reported. Thank you!', 'info'); }
-function shareLink() {
-  navigator.clipboard.writeText(window.location.href)
-    .then(() => window.showToast('Link copied!', 'success'))
-    .catch(() => window.showToast('Copy: ' + window.location.href, 'info'));
+
+// ==================== SHARE POPUP ====================
+function openSharePopup() {
+  const modal = document.getElementById('shareModal');
+  const input = document.getElementById('shareLinkInput');
+  if (input) input.value = window.location.href;
+  if (modal) modal.classList.add('open');
+  // Show native share button if supported
+  if (navigator.share) {
+    const nb = document.getElementById('nativeShareBtn');
+    if (nb) nb.style.display = '';
+  }
 }
+
+function closeSharePopup() {
+  const modal = document.getElementById('shareModal');
+  if (modal) modal.classList.remove('open');
+}
+
+function closeShareOnBackdrop(e) {
+  if (e.target === document.getElementById('shareModal')) closeSharePopup();
+}
+
+function copyShareLink() {
+  const input = document.getElementById('shareLinkInput');
+  const btn = document.getElementById('shareCopyBtn');
+  if (!input) return;
+  const url = input.value;
+  navigator.clipboard.writeText(url).then(() => {
+    if (btn) {
+      btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = '<i class="fas fa-copy"></i> Copy';
+        btn.classList.remove('copied');
+      }, 2200);
+    }
+    window.showToast('Link copied to clipboard!', 'success');
+  }).catch(() => {
+    input.select();
+    document.execCommand('copy');
+    window.showToast('Link copied!', 'success');
+  });
+}
+
+function shareToTwitter() {
+  const url = encodeURIComponent(window.location.href);
+  const text = encodeURIComponent('Watching: ${anime.title.replace(/'/g, "\\'")} - Episode ${episode.episode_number}');
+  window.open('https://twitter.com/intent/tweet?url=' + url + '&text=' + text, '_blank', 'width=600,height=400');
+}
+
+function shareToFacebook() {
+  const url = encodeURIComponent(window.location.href);
+  window.open('https://www.facebook.com/sharer/sharer.php?u=' + url, '_blank', 'width=600,height=400');
+}
+
+function shareToWhatsApp() {
+  const text = encodeURIComponent('${anime.title.replace(/'/g, "\\'")} - Episode ${episode.episode_number}: ' + window.location.href);
+  window.open('https://wa.me/?text=' + text, '_blank');
+}
+
+function shareToTelegram() {
+  const url = encodeURIComponent(window.location.href);
+  const text = encodeURIComponent('${anime.title.replace(/'/g, "\\'")} - Episode ${episode.episode_number}');
+  window.open('https://t.me/share/url?url=' + url + '&text=' + text, '_blank');
+}
+
+function shareToReddit() {
+  const url = encodeURIComponent(window.location.href);
+  const title = encodeURIComponent('${anime.title.replace(/'/g, "\\'")} - Episode ${episode.episode_number}');
+  window.open('https://reddit.com/submit?url=' + url + '&title=' + title, '_blank', 'width=700,height=500');
+}
+
+async function nativeShare() {
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: '${anime.title.replace(/'/g, "\\'")} - Episode ${episode.episode_number}',
+        url: window.location.href
+      });
+    } catch(e) {}
+  }
+}
+
+// Close share modal on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeSharePopup();
+});
 
 // Tab switching
 function switchWatchTab(tab) {
@@ -227,17 +402,22 @@ function switchWatchTab(tab) {
   const commentsPanel = document.getElementById('panelComments');
   const episodesBtn   = document.getElementById('tabEpisodes');
   const commentsBtn   = document.getElementById('tabComments');
+  const searchWrap    = document.querySelector('.watch-tabs-header-right');
 
   if (tab === 'episodes') {
     episodesPanel.style.display = '';
     commentsPanel.style.display = 'none';
     episodesBtn.classList.add('active');
     commentsBtn.classList.remove('active');
+    // Show search on episodes tab
+    if (searchWrap) searchWrap.style.display = '';
   } else {
     episodesPanel.style.display = 'none';
     commentsPanel.style.display = '';
     episodesBtn.classList.remove('active');
     commentsBtn.classList.add('active');
+    // Hide search on comments tab
+    if (searchWrap) searchWrap.style.display = 'none';
   }
 }
 
@@ -570,35 +750,102 @@ window.loadMoreComments = function() {
 </script>
 
 <style>
-/* ===== Watch Action Row ===== */
-.watch-action-row {
-  display: flex;
-  gap: 10px;
-  padding: 10px 0;
-  flex-wrap: wrap;
-}
-.watch-action-btn {
+/* ===================================================
+   BELOW PLAYER ROW — Prev | [Watchlist + Share] | Next
+=================================================== */
+.watch-below-player-row {
   display: flex;
   align-items: center;
+  gap: 8px;
+  padding: 10px 0 12px;
+}
+
+/* Sides (Prev / Next) */
+.wbp-side {
+  flex-shrink: 0;
+}
+
+/* Middle (Watchlist + Share) */
+.wbp-middle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Nav buttons (Prev / Next) */
+.wbp-nav-btn {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 9px 16px;
   background: var(--bg3);
   border: 1px solid var(--border);
-  border-radius: var(--r8);
+  border-radius: var(--r10);
   color: var(--text2);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   text-decoration: none;
+  white-space: nowrap;
+  font-family: inherit;
 }
-.watch-action-btn:hover {
+.wbp-nav-btn:hover:not(.disabled) {
+  background: var(--purple-dim);
+  border-color: var(--border-glow);
+  color: var(--purple3);
+}
+.wbp-nav-btn.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Action buttons (Watchlist / Share) in middle */
+.wbp-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 20px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r10);
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.wbp-action-btn:hover {
   background: var(--bg4);
   border-color: rgba(108,92,231,0.4);
   color: var(--purple2);
 }
+.wbp-watchlist.in-list {
+  background: var(--purple-dim);
+  border-color: rgba(124,58,237,0.45);
+  color: var(--purple3);
+}
+.wbp-share:hover {
+  background: rgba(6,182,212,0.1);
+  border-color: rgba(6,182,212,0.4);
+  color: var(--accent2);
+}
 
-/* ===== Watch Tabs Container ===== */
+/* Thin horizontal border separator */
+.watch-divider {
+  height: 1px;
+  background: var(--border2);
+  margin: 0 0 0;
+}
+
+/* ===================================================
+   WATCH TABS — header with search on right
+=================================================== */
 .watch-tabs-container {
   background: var(--bg3);
   border: 1px solid var(--border);
@@ -607,12 +854,29 @@ window.loadMoreComments = function() {
   margin-top: 14px;
 }
 
-/* Tab Header */
 .watch-tabs-header {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   border-bottom: 1px solid var(--border);
   background: var(--bg2);
+  padding-right: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
+
+.watch-tabs-header-left {
+  display: flex;
+  align-items: stretch;
+}
+
+.watch-tabs-header-right {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 6px 0;
+}
+
 .watch-tab-btn {
   display: flex;
   align-items: center;
@@ -629,6 +893,7 @@ window.loadMoreComments = function() {
   position: relative;
   bottom: -1px;
   font-family: inherit;
+  white-space: nowrap;
 }
 .watch-tab-btn:hover {
   color: var(--text1);
@@ -661,7 +926,164 @@ window.loadMoreComments = function() {
   min-height: 200px;
 }
 
-/* ===== Comments Styles ===== */
+/* ===================================================
+   SHARE MODAL
+=================================================== */
+.share-modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.78);
+  z-index: 3000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.share-modal-backdrop.open {
+  display: flex;
+  animation: shareBackdropIn 0.2s ease;
+}
+@keyframes shareBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.share-modal-box {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--r20);
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 30px 90px rgba(0,0,0,0.8), 0 0 0 1px rgba(124,58,237,0.1);
+  animation: shareBoxIn 0.22s ease;
+}
+@keyframes shareBoxIn {
+  from { opacity: 0; transform: scale(0.94) translateY(14px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.share-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.share-modal-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text1);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.share-modal-title i { color: var(--purple3); }
+.share-modal-close {
+  width: 32px; height: 32px;
+  border-radius: var(--r8);
+  background: var(--bg5);
+  border: 1px solid var(--border2);
+  color: var(--text3);
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+  font-family: inherit;
+}
+.share-modal-close:hover { border-color: var(--red); color: var(--red); background: rgba(239,68,68,0.1); }
+
+/* Copy link row */
+.share-copy-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.share-copy-input {
+  flex: 1;
+  padding: 10px 13px;
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: var(--r10);
+  color: var(--text2);
+  font-size: 12px;
+  outline: none;
+  min-width: 0;
+  font-family: inherit;
+  cursor: text;
+}
+.share-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, var(--purple) 0%, #4f46e5 100%);
+  color: #fff;
+  border: none;
+  border-radius: var(--r10);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.share-copy-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.share-copy-btn.copied {
+  background: linear-gradient(135deg, var(--green) 0%, #059669 100%);
+}
+
+/* Share options */
+.share-options-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text4);
+  margin-bottom: 12px;
+}
+.share-options-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+}
+.share-opt-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 14px 10px;
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: var(--r12);
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.share-opt-btn i {
+  font-size: 20px;
+  transition: transform 0.2s;
+}
+.share-opt-btn:hover {
+  transform: translateY(-2px);
+  border-color: transparent;
+}
+.share-opt-btn:hover i { transform: scale(1.1); }
+
+/* Platform colors on hover */
+.share-opt-twitter:hover  { background: rgba(29,161,242,0.15);  color: #1da1f2; border-color: rgba(29,161,242,0.35); }
+.share-opt-facebook:hover { background: rgba(24,119,242,0.15);  color: #1877f2; border-color: rgba(24,119,242,0.35); }
+.share-opt-whatsapp:hover { background: rgba(37,211,102,0.15);  color: #25d366; border-color: rgba(37,211,102,0.35); }
+.share-opt-telegram:hover { background: rgba(0,136,204,0.15);   color: #0088cc; border-color: rgba(0,136,204,0.35); }
+.share-opt-reddit:hover   { background: rgba(255,69,0,0.15);    color: #ff4500; border-color: rgba(255,69,0,0.35); }
+.share-opt-native:hover   { background: var(--purple-dim);       color: var(--purple3); border-color: rgba(124,58,237,0.4); }
+
+/* ===================================================
+   COMMENTS STYLES
+=================================================== */
 .comment-post-box { margin-bottom:16px; }
 .comment-item { padding:12px 0; border-bottom:1px solid var(--border); }
 .comment-item:last-child { border-bottom:none; }
@@ -684,6 +1106,64 @@ window.loadMoreComments = function() {
 .comment-delete-btn:hover { color:var(--red) !important; }
 .comment-replies { margin-top:10px; padding-left:16px; border-left:2px solid var(--border); display:flex; flex-direction:column; gap:8px; }
 .comment-reply { display:flex; gap:8px; }
+
+/* ===================================================
+   RESPONSIVE
+=================================================== */
+@media (max-width: 600px) {
+  .watch-below-player-row {
+    gap: 6px;
+  }
+  .wbp-nav-btn {
+    padding: 8px 11px;
+    font-size: 12px;
+  }
+  .wbp-nav-label {
+    display: none;
+  }
+  .wbp-action-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  .wbp-action-btn span {
+    display: none;
+  }
+  .wbp-action-btn {
+    padding: 8px 13px;
+  }
+  .watch-tabs-header {
+    flex-wrap: nowrap;
+    padding-right: 8px;
+  }
+  .watch-tab-btn {
+    padding: 11px 14px;
+    font-size: 12px;
+  }
+  .cr-ep-search {
+    width: 110px !important;
+  }
+  .cr-ep-search:focus {
+    width: 140px !important;
+  }
+  .share-options-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+  }
+  .share-opt-btn {
+    padding: 11px 6px;
+    font-size: 10px;
+  }
+  .share-opt-btn i { font-size: 18px; }
+}
+
+@media (max-width: 400px) {
+  .wbp-middle {
+    gap: 5px;
+  }
+  .watch-tabs-header-right .cr-ep-search {
+    width: 90px !important;
+  }
+}
 </style>
 `
 

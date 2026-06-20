@@ -32,17 +32,21 @@ ${siteUrl ? `<meta property="og:url" content="${siteUrl}">` : ''}
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="${siteName}">
 <!-- Apple Touch Icons -->
-<link rel="apple-touch-icon" href="/static/icon.png">
-<link rel="apple-touch-icon" sizes="167x167" href="/static/icon.png">
-<link rel="apple-touch-icon" sizes="152x152" href="/static/icon.png">
-<link rel="apple-touch-icon" sizes="144x144" href="/static/icon.png">
-<link rel="apple-touch-icon" sizes="128x128" href="/static/icon.png">
-<link rel="apple-touch-icon" sizes="96x96"   href="/static/icon.png">
+<link rel="apple-touch-icon" href="/static/icon-180x180.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/static/icon-180x180.png">
+<link rel="apple-touch-icon" sizes="167x167" href="/static/icon-167x167.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/static/icon-152x152.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/static/icon-144x144.png">
+<link rel="apple-touch-icon" sizes="128x128" href="/static/icon-128x128.png">
+<link rel="apple-touch-icon" sizes="96x96"   href="/static/icon-96x96.png">
 <!-- Favicons -->
-<link rel="icon" type="image/png" sizes="32x32" href="/static/icon.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/static/icon.png">
-<link rel="icon" type="image/x-icon" href="/static/icon.png">
-<link rel="shortcut icon" href="/static/icon.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/static/icon-512x512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/static/icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32"   href="/static/icon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16"   href="/static/icon-16x16.png">
+<link rel="icon" type="image/svg+xml"             href="/static/favicon.svg">
+<link rel="icon" type="image/x-icon"              href="/static/favicon.ico">
+<link rel="shortcut icon"                          href="/static/favicon.ico">
 <!-- PWA Manifest -->
 <link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
