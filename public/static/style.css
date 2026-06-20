@@ -2883,3 +2883,85 @@ section.hero-slider + section.hero-slider { display: none !important; }
   .tr-rank { font-size: 22px; min-width: 26px; }
   .tr-poster { width: 42px; height: 62px; }
 }
+
+/* ================================================================
+   PWA ENHANCEMENTS — v1.0
+   · Uniform card heights with 2-line ellipsis titles
+   · Mobile grid: 3 cards per row (scroll-row)
+   · Standalone mode safe-area insets
+================================================================ */
+
+/* ── Uniform acard height + 2-line title ellipsis ─────────── */
+.acard {
+  display: flex;
+  flex-direction: column;
+}
+.acard-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.acard-name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  /* Ensure consistent height for 2 lines */
+  min-height: 2.8em;
+  line-height: 1.4;
+}
+
+/* ── Mobile: 3 cards per row in scroll-row sections ─────────
+   On mobile the scroll-row switches to a 3-col wrap grid     */
+@media (max-width: 768px) {
+  /* Convert horizontal scroll rows to 3-col wrap grid */
+  .scroll-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 9px;
+    overflow-x: unset;
+    overflow-y: unset;
+    padding-bottom: 0;
+    scroll-snap-type: unset;
+    -webkit-overflow-scrolling: unset;
+  }
+  .scroll-row .acard,
+  .scroll-row.wide .acard {
+    width: 100%;
+    flex-shrink: unset;
+    scroll-snap-align: unset;
+  }
+}
+
+@media (max-width: 480px) {
+  .scroll-row {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+  }
+}
+
+/* ── PWA Safe-area for notched devices ───────────────────── */
+@media (display-mode: standalone) {
+  .site-header {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    height: calc(var(--bnav, 62px) + env(safe-area-inset-bottom, 0px));
+  }
+  .site-main {
+    padding-bottom: calc(var(--bnav, 62px) + env(safe-area-inset-bottom, 0px) + 8px);
+  }
+  /* FAB above bottom nav in standalone mode */
+  .pwa-fab {
+    bottom: calc(var(--bnav, 62px) + env(safe-area-inset-bottom, 0px) + 16px);
+  }
+}
+
+/* ── Splash screen prevent FOUC ─────────────────────────── */
+@media (display-mode: standalone) {
+  body { background: #080810; }
+}

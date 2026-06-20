@@ -13,6 +13,7 @@ import { tmdbRoutes } from './routes/tmdb'
 import { jikanRoutes } from './routes/jikan'
 import { commentRoutes } from './routes/comments'
 import { uploadRoutes } from './routes/upload'
+import { pwa } from './routes/pwa'
 
 // Page templates
 import { homePage } from './pages/home'
@@ -141,6 +142,9 @@ p{font-size:15px;color:#808090;line-height:1.7;margin-bottom:24px}
   }
   return next()
 })
+
+// PWA Routes (manifest.json + sw.js)
+app.route('/', pwa)
 
 // API Routes
 app.route('/api/anime', animeRoutes)
