@@ -24,11 +24,27 @@ ${siteUrl ? `<meta property="og:url" content="${siteUrl}">` : ''}
 <meta name="twitter:title" content="${title}">
 <meta name="twitter:description" content="${siteDesc}">
 <meta name="twitter:image" content="${ogImage}">
-<!-- Theme color for Android/iOS -->
-<meta name="theme-color" content="#080810">
+<!-- Theme & PWA -->
+<meta name="theme-color" content="#7c3aed">
+<meta name="mobile-web-app-capable" content="yes">
+<!-- Apple PWA -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<meta name="apple-mobile-web-app-title" content="${siteName}">
+<!-- Apple Touch Icons (all required sizes) -->
+<link rel="apple-touch-icon" href="/static/icon-180x180.png">
+<link rel="apple-touch-icon" sizes="167x167" href="/static/icon-167x167.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/static/icon-152x152.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/static/icon-144x144.png">
+<link rel="apple-touch-icon" sizes="128x128" href="/static/icon-128x128.png">
+<link rel="apple-touch-icon" sizes="96x96"   href="/static/icon-96x96.png">
+<!-- Favicons -->
+<link rel="icon" type="image/png" sizes="32x32" href="/static/icon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/static/icon-16x16.png">
+<link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+<link rel="shortcut icon" href="/static/favicon.ico">
+<!-- PWA Manifest -->
+<link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -267,6 +283,340 @@ ${content}
 
 <!-- ==================== SCRIPTS ==================== -->
 <script src="/static/app.js"></script>
+
+<!-- ==================== PWA: INSTALL MODAL + FAB ==================== -->
+<!-- Install Modal — Mobile Only, shows on first Android Chrome visit -->
+<div id="pwaInstallModal" style="display:none;" aria-modal="true" role="dialog" aria-label="Install App">
+  <div class="pwa-modal-backdrop" id="pwaModalBackdrop"></div>
+  <div class="pwa-modal-sheet">
+    <div class="pwa-modal-handle"></div>
+    <div class="pwa-modal-content">
+      <img src="/static/icon-192x192.png" alt="${siteName} icon" class="pwa-modal-icon">
+      <div class="pwa-modal-text">
+        <h2 class="pwa-modal-title" id="pwaModalTitle">${siteName}</h2>
+        <p class="pwa-modal-desc">Install the app for the best experience — watch offline, faster loading, and no browser bar.</p>
+      </div>
+      <div class="pwa-modal-features">
+        <div class="pwa-feature-item"><span class="pwa-feature-icon">⚡</span><span>Faster loading</span></div>
+        <div class="pwa-feature-item"><span class="pwa-feature-icon">📴</span><span>Works offline</span></div>
+        <div class="pwa-feature-item"><span class="pwa-feature-icon">🖥️</span><span>Fullscreen mode</span></div>
+      </div>
+      <button class="pwa-install-btn" id="pwaInstallBtn" onclick="triggerPwaInstall()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Install App
+      </button>
+      <button class="pwa-dismiss-btn" id="pwaDismissBtn" onclick="dismissPwaModal()">Not Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- Floating Install FAB — mobile only, appears when not installed -->
+<button class="pwa-fab" id="pwaFab" style="display:none;" onclick="openPwaModal()" title="Install App" aria-label="Install App">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+  <span class="pwa-fab-label">Install</span>
+</button>
+
+<style>
+/* ── PWA Install Modal ──────────────────────────────────── */
+#pwaInstallModal {
+  position: fixed; inset: 0; z-index: 99999;
+  pointer-events: none;
+}
+#pwaInstallModal.open {
+  pointer-events: auto;
+}
+.pwa-modal-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0; transition: opacity 0.3s ease;
+}
+#pwaInstallModal.open .pwa-modal-backdrop { opacity: 1; }
+
+.pwa-modal-sheet {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(160deg, #16162a 0%, #0f0f1e 100%);
+  border-top: 1px solid rgba(124,58,237,0.3);
+  border-radius: 24px 24px 0 0;
+  padding: 12px 24px 40px;
+  box-shadow: 0 -12px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(124,58,237,0.15);
+  transform: translateY(100%);
+  transition: transform 0.38s cubic-bezier(0.32,0.72,0,1);
+}
+#pwaInstallModal.open .pwa-modal-sheet { transform: translateY(0); }
+
+.pwa-modal-handle {
+  width: 44px; height: 5px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+  margin: 0 auto 24px;
+}
+
+.pwa-modal-content { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+
+.pwa-modal-icon {
+  width: 88px; height: 88px;
+  border-radius: 22px;
+  box-shadow: 0 8px 32px rgba(124,58,237,0.5);
+  border: 2px solid rgba(124,58,237,0.35);
+}
+
+.pwa-modal-text { text-align: center; }
+.pwa-modal-title {
+  font-size: 22px; font-weight: 800;
+  color: #fff; margin-bottom: 8px;
+  letter-spacing: -0.3px;
+}
+.pwa-modal-desc {
+  font-size: 14px; color: #9090b0; line-height: 1.6;
+  max-width: 300px; margin: 0 auto;
+}
+
+.pwa-modal-features {
+  display: flex; gap: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; padding: 14px 18px;
+  width: 100%; justify-content: center;
+}
+.pwa-feature-item {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  font-size: 11px; color: #8080a0; flex: 1; text-align: center;
+}
+.pwa-feature-icon { font-size: 22px; }
+
+.pwa-install-btn {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  color: #fff; border: none;
+  padding: 15px 24px;
+  border-radius: 14px;
+  font-size: 16px; font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(124,58,237,0.5);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.pwa-install-btn:active { transform: scale(0.97); box-shadow: 0 3px 12px rgba(124,58,237,0.4); }
+
+.pwa-dismiss-btn {
+  width: 100%; background: none; border: none;
+  color: #6060a0; font-size: 14px; font-weight: 500;
+  padding: 10px; cursor: pointer;
+  border-radius: 10px; transition: color 0.2s, background 0.2s;
+}
+.pwa-dismiss-btn:hover { color: #9090c0; background: rgba(255,255,255,0.04); }
+
+/* ── PWA Floating FAB ───────────────────────────────────── */
+.pwa-fab {
+  position: fixed;
+  bottom: calc(var(--bnav, 62px) + 16px);
+  right: 16px;
+  z-index: 9990;
+  display: flex; align-items: center; gap: 7px;
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  color: #fff; border: none;
+  padding: 12px 18px 12px 14px;
+  border-radius: 50px;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(124,58,237,0.55), 0 2px 8px rgba(0,0,0,0.4);
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
+  animation: pwaFabIn 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+@keyframes pwaFabIn {
+  from { transform: scale(0.5) translateY(20px); opacity: 0; }
+  to   { transform: scale(1) translateY(0);       opacity: 1; }
+}
+.pwa-fab:hover { transform: scale(1.06); box-shadow: 0 6px 28px rgba(124,58,237,0.65), 0 2px 8px rgba(0,0,0,0.5); }
+.pwa-fab:active { transform: scale(0.95); }
+.pwa-fab-label { font-size: 13px; font-weight: 700; }
+
+/* ── Hide PWA elements on desktop ───────────────────────── */
+@media (min-width: 769px) {
+  #pwaInstallModal { display: none !important; }
+  .pwa-fab { display: none !important; }
+}
+</style>
+
+<script>
+/* ──────────────────────────────────────────────────────────
+   PWA Install System — production-grade
+   · Captures BeforeInstallPrompt (Android Chrome)
+   · Shows bottom-sheet modal on first visit
+   · 3-day snooze on dismiss
+   · Never shows again after install
+   · Floating FAB as persistent fallback
+────────────────────────────────────────────────────────── */
+(function () {
+  'use strict';
+
+  const STORAGE_KEY   = 'pwa_install_dismissed_at';
+  const INSTALLED_KEY = 'pwa_installed';
+  const SNOOZE_MS     = 3 * 24 * 60 * 60 * 1000; // 3 days
+  const SHOW_DELAY_MS = 2500; // wait before auto-showing
+
+  let deferredPrompt = null;
+
+  // ── Detect if already installed (standalone mode) ────────
+  function isStandalone() {
+    return (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true
+    );
+  }
+
+  // ── Detect mobile ────────────────────────────────────────
+  function isMobile() {
+    return window.innerWidth <= 768 ||
+      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }
+
+  // ── Check if we should show the modal ────────────────────
+  function shouldShow() {
+    if (!isMobile())                                return false;
+    if (isStandalone())                             return false;
+    if (localStorage.getItem(INSTALLED_KEY))        return false;
+    const dismissedAt = localStorage.getItem(STORAGE_KEY);
+    if (dismissedAt) {
+      const elapsed = Date.now() - parseInt(dismissedAt, 10);
+      if (elapsed < SNOOZE_MS)                      return false;
+    }
+    return true;
+  }
+
+  // ── Open Modal ───────────────────────────────────────────
+  window.openPwaModal = function () {
+    var modal = document.getElementById('pwaInstallModal');
+    if (!modal) return;
+    // Update title dynamically from page <title>
+    var titleEl = document.getElementById('pwaModalTitle');
+    if (titleEl) {
+      var pageTitle = document.title.split('|')[0].split('-')[0].trim();
+      // Use site name from header if available
+      var headerName = document.getElementById('headerSiteName');
+      titleEl.textContent = (headerName && headerName.textContent.trim())
+        ? headerName.textContent.trim()
+        : pageTitle;
+    }
+    modal.style.display = 'block';
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        modal.classList.add('open');
+      });
+    });
+    // Hide FAB while modal is open
+    var fab = document.getElementById('pwaFab');
+    if (fab) fab.style.opacity = '0';
+  };
+
+  // ── Close Modal ──────────────────────────────────────────
+  function closeModal() {
+    var modal = document.getElementById('pwaInstallModal');
+    if (!modal) return;
+    modal.classList.remove('open');
+    setTimeout(function () { modal.style.display = 'none'; }, 380);
+    // Restore FAB
+    var fab = document.getElementById('pwaFab');
+    if (fab && deferredPrompt) fab.style.opacity = '1';
+  }
+
+  // ── Dismiss (snooze 3 days) ──────────────────────────────
+  window.dismissPwaModal = function () {
+    localStorage.setItem(STORAGE_KEY, Date.now().toString());
+    closeModal();
+  };
+
+  // ── Trigger native install ───────────────────────────────
+  window.triggerPwaInstall = async function () {
+    if (!deferredPrompt) {
+      // Fallback: close modal, user may use browser menu
+      closeModal();
+      return;
+    }
+    try {
+      deferredPrompt.prompt();
+      var result = await deferredPrompt.userChoice;
+      if (result.outcome === 'accepted') {
+        localStorage.setItem(INSTALLED_KEY, '1');
+        localStorage.removeItem(STORAGE_KEY);
+        // Hide FAB permanently
+        var fab = document.getElementById('pwaFab');
+        if (fab) { fab.style.display = 'none'; }
+      } else {
+        localStorage.setItem(STORAGE_KEY, Date.now().toString());
+      }
+    } catch (e) {
+      console.warn('[PWA] Install prompt error:', e);
+    }
+    deferredPrompt = null;
+    closeModal();
+  };
+
+  // ── Backdrop click closes modal ──────────────────────────
+  var backdrop = document.getElementById('pwaModalBackdrop');
+  if (backdrop) backdrop.addEventListener('click', window.dismissPwaModal);
+
+  // ── Listen for BeforeInstallPrompt ───────────────────────
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    if (!isMobile() || isStandalone()) return;
+
+    // Show FAB
+    var fab = document.getElementById('pwaFab');
+    if (fab) fab.style.display = 'flex';
+
+    // Auto-show modal if conditions met
+    if (shouldShow()) {
+      setTimeout(window.openPwaModal, SHOW_DELAY_MS);
+    }
+  });
+
+  // ── Listen for successful install ────────────────────────
+  window.addEventListener('appinstalled', function () {
+    localStorage.setItem(INSTALLED_KEY, '1');
+    deferredPrompt = null;
+    var modal = document.getElementById('pwaInstallModal');
+    var fab   = document.getElementById('pwaFab');
+    if (modal) { modal.classList.remove('open'); modal.style.display = 'none'; }
+    if (fab)   { fab.style.display = 'none'; }
+  });
+
+  // ── Register Service Worker ──────────────────────────────
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        .then(function (reg) {
+          console.log('[SW] Registered, scope:', reg.scope);
+          // Check for updates on navigation
+          reg.addEventListener('updatefound', function () {
+            var newWorker = reg.installing;
+            if (!newWorker) return;
+            newWorker.addEventListener('statechange', function () {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[SW] Update available — will apply on next load.');
+              }
+            });
+          });
+        })
+        .catch(function (err) { console.warn('[SW] Registration failed:', err); });
+    });
+  }
+
+  // ── Hide FAB if already installed ───────────────────────
+  if (isStandalone() || localStorage.getItem(INSTALLED_KEY)) {
+    document.addEventListener('DOMContentLoaded', function () {
+      var fab = document.getElementById('pwaFab');
+      if (fab) fab.style.display = 'none';
+    });
+  }
+})();
+</script>
+
+<!-- ==================== /PWA ==================== -->
 </body>
 </html>`
 }
