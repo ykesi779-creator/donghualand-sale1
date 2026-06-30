@@ -119,7 +119,7 @@ ${breadcrumb([
     <!-- ====== TABBED SECTION: Episodes + Comments ====== -->
     <div class="watch-tabs-container">
 
-      <!-- Tab Headers — Episodes | Comments | [Search input on right] -->
+      <!-- Tab Headers — Episodes | Comments -->
       <div class="watch-tabs-header">
         <div class="watch-tabs-header-left">
           <button class="watch-tab-btn active" id="tabEpisodes" onclick="switchWatchTab('episodes')">
@@ -130,15 +130,6 @@ ${breadcrumb([
             <i class="fas fa-comments"></i> Comments
             <span class="watch-tab-count" id="tabCommentsCount"></span>
           </button>
-        </div>
-        <!-- Search episode input — shown always on right side of tab bar -->
-        <div class="watch-tabs-header-right">
-          <div class="cr-ep-search-wrap">
-            <i class="fas fa-search cr-ep-search-icon"></i>
-            <input type="text" class="cr-ep-search" id="crEpSearch"
-              placeholder="Search episode..." autocomplete="off"
-              oninput="filterCrEpisodes(this.value)">
-          </div>
         </div>
       </div>
 
@@ -412,54 +403,45 @@ function switchWatchTab(tab) {
   const commentsPanel = document.getElementById('panelComments');
   const episodesBtn   = document.getElementById('tabEpisodes');
   const commentsBtn   = document.getElementById('tabComments');
-  const searchWrap    = document.querySelector('.watch-tabs-header-right');
 
   if (tab === 'episodes') {
     episodesPanel.style.display = '';
     commentsPanel.style.display = 'none';
     episodesBtn.classList.add('active');
     commentsBtn.classList.remove('active');
-    // Show search on episodes tab
-    if (searchWrap) searchWrap.style.display = '';
+    // Re-run auto-scroll when switching back to episodes tab
+    scrollToActiveEpisode();
   } else {
     episodesPanel.style.display = 'none';
     commentsPanel.style.display = '';
     episodesBtn.classList.remove('active');
     commentsBtn.classList.add('active');
-    // Hide search on comments tab
-    if (searchWrap) searchWrap.style.display = 'none';
   }
 }
 
-// Episode search filter
-function filterCrEpisodes(val) {
-  const q = val.trim().toLowerCase();
-  const items = document.querySelectorAll('.cr-ep-item');
-  let found = 0;
-  items.forEach(function(item) {
-    const num = item.getAttribute('data-epnum') || '';
-    const title = item.getAttribute('data-eptitle') || '';
-    const match = !q || num.includes(q) || title.includes(q);
-    item.style.display = match ? '' : 'none';
-    if (match) found++;
-  });
-  const empty = document.getElementById('crEpEmpty');
-  if (empty) empty.style.display = found === 0 ? 'block' : 'none';
-}
-
-// Auto-scroll to active episode on load (inside the episode list container, no page scroll)
-document.addEventListener('DOMContentLoaded', function() {
+// Auto-scroll to active (currently playing) episode — centers it in the list
+function scrollToActiveEpisode() {
   const active = document.querySelector('.cr-ep-item.active');
-  if (active) {
-    const list = document.getElementById('crEpList');
-    if (list) {
-      // Scroll only within the episode list container, never the page
-      const itemTop = active.offsetTop;
-      const listHeight = list.clientHeight;
-      const itemHeight = active.clientHeight;
-      list.scrollTop = itemTop - (listHeight / 2) + (itemHeight / 2);
-    }
+  const list = document.getElementById('crEpList');
+  if (!active || !list) return;
+
+  // Use scrollIntoView on the active item so it is always visible,
+  // then fine-tune to center it within the scrollable list container.
+  try {
+    const listRect  = list.getBoundingClientRect();
+    const itemRect  = active.getBoundingClientRect();
+    const offset    = itemRect.top - listRect.top;   // distance from top of list viewport
+    const center    = offset - (list.clientHeight / 2) + (active.offsetHeight / 2);
+    list.scrollTop += center;
+  } catch(e) {
+    // Fallback: simple offsetTop centering
+    list.scrollTop = active.offsetTop - (list.clientHeight / 2) + (active.offsetHeight / 2);
   }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Scroll the currently-playing episode into view inside the list
+  scrollToActiveEpisode();
   if (window.initWatchlistBtn) window.initWatchlistBtn();
   initComments();
 });
@@ -944,13 +926,6 @@ window.loadMoreComments = function() {
   align-items: stretch;
 }
 
-.watch-tabs-header-right {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  padding: 6px 0;
-}
-
 .watch-tab-btn {
   display: flex;
   align-items: center;
@@ -1198,7 +1173,7 @@ window.loadMoreComments = function() {
 .comment-reply { display:flex; gap:8px; }
 
 /* ===================================================
-   RESPONSIVE — Tabs, Episode Search, Share Grid
+   RESPONSIVE — Tabs, Share Grid
 =================================================== */
 @media (max-width: 600px) {
   .watch-tabs-header {
@@ -1208,12 +1183,6 @@ window.loadMoreComments = function() {
   .watch-tab-btn {
     padding: 11px 14px;
     font-size: 12px;
-  }
-  .cr-ep-search {
-    width: 110px !important;
-  }
-  .cr-ep-search:focus {
-    width: 140px !important;
   }
   .share-options-grid {
     grid-template-columns: repeat(3, 1fr);
@@ -1243,9 +1212,6 @@ window.loadMoreComments = function() {
   }
   .wbp-middle {
     gap: 6px;
-  }
-  .watch-tabs-header-right .cr-ep-search {
-    width: 90px !important;
   }
 }
 </style>
